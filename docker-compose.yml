@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nksp:
+    build: .
+    command: python app.py
+    container_name: nksp
+    ports:
+      - '5000:5000'
+    networks:
+      - nksp_net
+
+networks:
+  nksp_net:
+    driver: bridge
