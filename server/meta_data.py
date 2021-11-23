@@ -20,12 +20,30 @@ class MetaData:
     menu_active_data: bool
     menu_active_answer: bool
 
+    load_data: list
+
     def __init__(self, data):
         if data is not None:
-            self.menu_active_main = data['menu_active_main']
-            self.menu_active_load = data['menu_active_load']
-            self.menu_active_data = data['menu_active_data']
-            self.menu_active_answer = data['menu_active_answer']
+            self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
+            self.menu_active_load = MetaData.get_value(data, 'menu_active_load')
+            self.menu_active_data = MetaData.get_value(data, 'menu_active_data')
+            self.menu_active_answer = MetaData.get_value(data, 'menu_active_answer')
+
+            self.load_data = MetaData.get_value(data, 'load_data')
+
+    def get_load_data_len(self):
+        """
+        Получает массив индексов столбцов загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.load_data[0]) + 1)))
+
+    def get_load_data_rows_len(self):
+        """
+        Получает массив индексов строк загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.load_data) + 1)))
 
     def set_active_menu(self, menu_type: MenuTypes):
         self._drop_active_menu()
@@ -44,6 +62,13 @@ class MetaData:
         self.menu_active_load = False
         self.menu_active_data = False
         self.menu_active_answer = False
+
+    @staticmethod
+    def get_value(data, key):
+        try:
+            return data[key]
+        except KeyError:
+            return None
 
     class DataEncoder(json.JSONEncoder):
         """
