@@ -1,12 +1,13 @@
 import datetime
 import json
 
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, request
 
 from server.meta_data import MetaData, MenuTypes
 
 app = Flask(__name__)
 app.secret_key = 'd23f32f24f'
+ALLOWED_EXTENSIONS = set(['txt'])
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 app.permanent_session_lifetime = datetime.timedelta(hours=3)
 
@@ -61,6 +62,18 @@ def get_meta_data():
         return meta_data
 
 
+def allowed_file(filename):
+    """
+    Проверяет соответствие расширений файлов к разрешённым.
+    :param filename: имя загруженного файла.
+    :return: True, если файл соответствует маске,
+             False, если файл не соответствует маске.
+    """
+
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
 @app.route('/')
 def main():
     meta_data = get_meta_data()
@@ -70,12 +83,30 @@ def main():
     return render_template('main.html', meta_data=meta_data)
 
 
-@app.route('/load')
-def load():
+@app.route('/load', methods=['GET'])
+def load_get():
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.LOAD)
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    return render_template('load.html', meta_data=meta_data)
+
+
+@app.route('/load', methods=['POST'])
+def load_post():
+    meta_data = get_meta_data()
+    meta_data.set_active_menu(MenuTypes.LOAD)
+
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        _list = []
+        for line in file.stream.readlines():
+            _list.append(list(map(float, line.decode('utf-8').split())))
+        file.close()
+        meta_data.load_data = _list
+        del _list
+
+    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
     return render_template('load.html', meta_data=meta_data)
 
 
