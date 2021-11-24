@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, redirect, url_for
 
 from server.meta_data import MetaData, MenuTypes
 
@@ -76,6 +76,10 @@ def allowed_file(filename):
 
 @app.route('/')
 def main():
+    """
+    Формирует основную страницу.
+    """
+
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.MAIN)
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
@@ -85,6 +89,10 @@ def main():
 
 @app.route('/load', methods=['GET'])
 def load_get():
+    """
+    Формирует страницу для загрузки исходных данных.
+    """
+
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.LOAD)
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
@@ -94,6 +102,10 @@ def load_get():
 
 @app.route('/load', methods=['POST'])
 def load_post():
+    """
+    Обрабатывает загрузку файла с исходными данными.
+    """
+
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.LOAD)
 
@@ -112,6 +124,10 @@ def load_post():
 
 @app.route('/data')
 def data():
+    """
+    Формирует страницу с загруженными данными.
+    """
+
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.DATA)
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
@@ -121,11 +137,28 @@ def data():
 
 @app.route('/answer')
 def answer():
+    """
+    Формирует страницу с результатами вычислений.
+    """
+
     meta_data = get_meta_data()
     meta_data.set_active_menu(MenuTypes.ANSWER)
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
     return render_template('answer.html', meta_data=meta_data)
+
+
+@app.route('/form/free_chlen', methods=['POST'])
+def form_free_chlen():
+    """
+    Обрабатывает форму setParams в шаблоне main.html.
+    """
+
+    meta_data = get_meta_data()
+    meta_data.set_free_chlen(request.form)
+    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
+
+    return redirect(url_for('load_get'))
 
 
 if __name__ == '__main__':

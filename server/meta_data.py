@@ -22,6 +22,8 @@ class MetaData:
 
     load_data: list
 
+    free_chlen: bool
+
     def __init__(self, data):
         if data is not None:
             self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
@@ -30,6 +32,8 @@ class MetaData:
             self.menu_active_answer = MetaData.get_value(data, 'menu_active_answer')
 
             self.load_data = MetaData.get_value(data, 'load_data')
+
+            self.free_chlen = MetaData.get_value(data, 'free_chlen')
 
     def get_load_data_len(self):
         """
@@ -56,6 +60,12 @@ class MetaData:
             self.menu_active_data = True
         elif menu_type == MenuTypes.ANSWER:
             self.menu_active_answer = True
+
+    def set_free_chlen(self, form):
+        if self.get_value(form, 'free_chlen'):
+            self.free_chlen = True
+        else:
+            self.free_chlen = False
 
     def _drop_active_menu(self):
         self.menu_active_main = False
