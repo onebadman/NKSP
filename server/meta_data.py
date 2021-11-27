@@ -23,8 +23,9 @@ class MetaData:
     load_data: list
 
     free_chlen: bool
-    r: float  # Уровень приоритета суммы модулей
-    delta: float  # Малая положительная величина
+    r: float  # Уровень приоритета суммы модулей.
+    delta: float  # Малая положительная величина.
+    var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
 
     def __init__(self, data):
         if data is not None:
@@ -38,6 +39,7 @@ class MetaData:
             self.free_chlen = MetaData.get_value(data, 'free_chlen')
             self.r = MetaData.get_value(data, 'r')
             self.delta = MetaData.get_value(data, 'delta')
+            self.var_y = MetaData.get_value(data, 'var_y')
 
     def get_load_data_len(self):
         """
@@ -75,6 +77,7 @@ class MetaData:
         self.set_free_chlen(form)
         self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
         self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
+        self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
 
     def _drop_active_menu(self):
         self.menu_active_main = False
