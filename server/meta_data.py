@@ -27,7 +27,7 @@ class MetaData:
     delta: float  # Малая положительная величина.
     var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
 
-    def __init__(self, data):
+    def __init__(self, data = None):
         if data is not None:
             self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
             self.menu_active_load = MetaData.get_value(data, 'menu_active_load')
