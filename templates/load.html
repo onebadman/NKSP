@@ -14,6 +14,7 @@
     {% if meta_data.load_data %}
         {{ render_table_load_data(meta_data) }}
 
+        <br>
         <form action="/data" method="get">
             <button type="submit" class="btn btn-primary">Подготовить исходные данные</button>
         </form>

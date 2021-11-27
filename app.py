@@ -122,8 +122,8 @@ def load_post():
     return render_template('load.html', meta_data=meta_data)
 
 
-@app.route('/data')
-def data():
+@app.route('/data', methods=["GET"])
+def data_get():
     """
     Формирует страницу с загруженными данными.
     """
@@ -159,6 +159,19 @@ def form_free_chlen():
     set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
     return redirect(url_for('load_get'))
+
+
+@app.route('/form/data', methods=["POST"])
+def form_data():
+    """
+    Обрабатывает форму setData в шаблоне data.html.
+    """
+
+    meta_data = get_meta_data()
+    meta_data.set_data(request.form)
+    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
+
+    return redirect(url_for('answer'))
 
 
 if __name__ == '__main__':
