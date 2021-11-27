@@ -83,7 +83,7 @@ def get_session():
     """
 
     if is_object_session('token'):
-        s = Session(get_object_session('token'))
+        s = Session.get_session(get_object_session('token'))
         set_object_session('token', s.token.body)
         return s
     return Session()

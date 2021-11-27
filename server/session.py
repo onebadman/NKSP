@@ -1,6 +1,8 @@
 import datetime
 import json
+
 import jwt
+import redis
 
 
 class Token:
@@ -17,18 +19,12 @@ class Token:
             self.body = jwt.encode(payload={'create_time': str(self.create_time)}, key='secret', algorithm="HS512")
         else:
             data = Token.decode(token)
-            if data is None:
-                raise Exception("Bad token!")
             self.body = token
             self.create_time = datetime.datetime.fromisoformat(data['create_time'])
 
     @staticmethod
     def decode(token: str):
-        try:
-            return jwt.decode(jwt=token, key='secret', algorithms="HS512")
-        except jwt.exceptions.InvalidSignatureError as e:
-            print(e)
-            return None
+        return jwt.decode(jwt=token, key='secret', algorithms="HS512")
 
     def __str__(self):
         return self.body
@@ -41,21 +37,37 @@ class Session:
 
     token: Token
 
-    def __init__(self, token: str = None):
+    def __init__(self, token: Token = None):
         if token is None:
             self.create_token()
         else:
-            self.token = Session.get_session(token)
+            self.token = token
 
     def create_token(self):
         self.token = Token()
-        # сохранить токен в БД.
+        r = redis.Redis(decode_responses=True)
+        r.set(
+            self.token.body, "")
+        r.expireat(
+            self.token.body,
+            datetime.datetime.fromisoformat(f'{datetime.date.today() + datetime.timedelta(days=1)} 04:00:00'))
+        r.close()
 
     @staticmethod
     def get_session(_token: str):
-        token = Token(_token)
-        # проверить наличие токена в БД, если его там нет, создать новый.
-        return token
+        try:
+            token = Token(_token)
+
+            r = redis.Redis()
+            data = r.get(token.body)
+            if data is None:
+                r.close()
+                return Session()
+            r.close()
+            return Session(token)
+
+        except jwt.exceptions.InvalidSignatureError as e:
+            return Session()
 
     class DataEncoder(json.JSONEncoder):
         """
