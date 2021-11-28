@@ -4,6 +4,8 @@ import json
 import jwt
 import redis
 
+from server.meta_data import MetaData
+
 
 class Token:
     """
@@ -36,6 +38,7 @@ class Session:
     """
 
     token: Token
+    _meta_data: MetaData
 
     def __init__(self, token: Token = None):
         if token is None:
@@ -43,9 +46,27 @@ class Session:
         else:
             self.token = token
 
+        self._meta_data = None
+
+    @property
+    def meta_data(self) -> MetaData:
+        r = Session._get_redis()
+        if r.get(self.token.body) != "" and 'meta_data' in json.loads(r.get(self.token.body)):
+            self._meta_data = MetaData(json.loads(r.get(self.token.body))['meta_data'])
+        else:
+            self._meta_data = MetaData()
+
+        return self._meta_data
+
+    @meta_data.setter
+    def meta_data(self, new_meta_data: MetaData):
+        self._meta_data = new_meta_data
+
+        self.save()
+
     def create_token(self):
         self.token = Token()
-        r = redis.Redis(decode_responses=True)
+        r = Session._get_redis()
         r.set(
             self.token.body, "")
         r.expireat(
@@ -58,7 +79,7 @@ class Session:
         try:
             token = Token(_token)
 
-            r = redis.Redis()
+            r = Session._get_redis()
             data = r.get(token.body)
             if data is None:
                 r.close()
@@ -66,8 +87,20 @@ class Session:
             r.close()
             return Session(token)
 
-        except jwt.exceptions.InvalidSignatureError as e:
+        except jwt.exceptions.InvalidSignatureError:
             return Session()
+
+    def save(self):
+        r = Session._get_redis()
+        r.set(self.token.body, f'{{"meta_data":{json.dumps(self._meta_data, cls=MetaData.DataEncoder)}}}')
+        r.expireat(
+            self.token.body,
+            datetime.datetime.fromisoformat(f'{datetime.date.today() + datetime.timedelta(days=1)} 04:00:00'))
+        r.close()
+
+    @staticmethod
+    def _get_redis() -> redis.Redis:
+        return redis.Redis(decode_responses=True)
 
     class DataEncoder(json.JSONEncoder):
         """

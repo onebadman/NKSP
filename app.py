@@ -1,9 +1,8 @@
 import datetime
-import json
 
 from flask import Flask, render_template, session, request, redirect, url_for
 
-from server.meta_data import MetaData, MenuTypes
+from server.meta_data import MenuTypes
 from server.session import Session
 
 
@@ -48,22 +47,6 @@ def set_object_session(name, value):
     session[name] = value
 
 
-def get_meta_data():
-    """
-    Получает мета данные пользователя сессии.
-    :return: мета данные пользователя сессии.
-    """
-
-    if is_object_session('meta_data'):
-        return MetaData(json.loads(get_object_session('meta_data')))
-    else:
-        meta_data = MetaData()
-
-        set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
-
-        return meta_data
-
-
 def allowed_file(filename):
     """
     Проверяет соответствие расширений файлов к разрешённым.
@@ -102,9 +85,12 @@ def main():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.MAIN)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
+
+    _session.meta_data = meta_data
+
+    print(_session.meta_data)
 
     return render_template('main.html', meta_data=meta_data)
 
@@ -118,10 +104,11 @@ def load_get():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return render_template('load.html', meta_data=meta_data)
 
 
@@ -134,7 +121,7 @@ def load_post():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
 
     file = request.files['file']
@@ -146,7 +133,8 @@ def load_post():
         meta_data.load_data = _list
         del _list
 
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return render_template('load.html', meta_data=meta_data)
 
 
@@ -159,10 +147,11 @@ def data_get():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.DATA)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return render_template('data.html', meta_data=meta_data)
 
 
@@ -175,10 +164,11 @@ def answer():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return render_template('answer.html', meta_data=meta_data)
 
 
@@ -191,10 +181,11 @@ def form_free_chlen():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_free_chlen(request.form)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return redirect(url_for('load_get'))
 
 
@@ -207,10 +198,11 @@ def form_data():
     _session = get_session()
     save_session(_session)
 
-    meta_data = get_meta_data()
+    meta_data = _session.meta_data
     meta_data.set_data(request.form)
-    set_object_session('meta_data', json.dumps(meta_data, cls=MetaData.DataEncoder))
 
+    _session.meta_data = meta_data
+    print(_session.meta_data)
     return redirect(url_for('answer'))
 
 
