@@ -27,7 +27,7 @@ class MetaData:
     delta: float  # Малая положительная величина.
     var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
 
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         if data is not None:
             self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
             self.menu_active_load = MetaData.get_value(data, 'menu_active_load')
@@ -92,10 +92,14 @@ class MetaData:
         except KeyError:
             return None
 
+    def __str__(self):
+        return json.dumps(self, cls=MetaData.DataEncoder)
+
     class DataEncoder(json.JSONEncoder):
         """
         Класс кодирует модель MetaData в JSON формат.
         """
+
         def default(self, obj):
             if isinstance(obj, MetaData):
                 return obj.__dict__

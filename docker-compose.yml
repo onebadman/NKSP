@@ -10,10 +10,10 @@ services:
     networks:
       - nksp_net
     depends_on:
-      - radis
-  radis:
+      - redis
+  redis:
     image: redis:6.0.8
-    container_name: radis
+    container_name: redis
     ports:
       - '6379:6379'
     networks:
