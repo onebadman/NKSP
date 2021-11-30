@@ -5,6 +5,10 @@ from server.meta_data import MetaData
 
 
 class Data:
+    """
+    Класс для промежуточной подготовки исходных данных.
+    """
+
     x: np.ndarray
     y: np.ndarray
     r: float
@@ -66,6 +70,46 @@ class Data:
 
         self.omega = np.array(omega)
 
+
+class LpSolve:
+    """
+    Задача линейного программирования.
+    """
+
+    data: Data
+    _vars: dict
+
+    def __init__(self, data: Data):
+        self.data = data
+        self._vars = {}
+        self._create_variable_u_v()
+        self._create_variable_l()
+        self._create_variable_beta_gamma()
+
+    def _create_variable_u_v(self):
+        for index in range(self.data.y.size):
+            var_name_u = f'u{index}'
+            var_name_v = f'v{index}'
+            self._vars.setdefault(var_name_u, pulp.LpVariable(var_name_u, lowBound=0))
+            self._vars.setdefault(var_name_v, pulp.LpVariable(var_name_v, lowBound=0))
+
+    def _create_variable_l(self):
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                var_name = f'l{k}{s}'
+                self._vars.setdefault(var_name, pulp.LpVariable(var_name, lowBound=0))
+
+    def _create_variable_beta_gamma(self):
+        for index in range(len(self.data.x[0])):
+            var_name_beta = f'b{index}'
+            var_name_gamma = f'g{index}'
+            self._vars.setdefault(var_name_beta, pulp.LpVariable(var_name_beta, lowBound=0))
+            self._vars.setdefault(var_name_gamma, pulp.LpVariable(var_name_gamma, lowBound=0))
+
+# 5  1 6
+# 7  7 8
+# 9  4 2
+# 3  3 5
 
 # problem = pulp.LpProblem('', pulp.const.LpMinimize)
 #
