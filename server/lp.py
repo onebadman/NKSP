@@ -9,12 +9,14 @@ class Data:
     y: np.ndarray
     r: float
     delta: float
+    omega: np.ndarray
 
     def __init__(self, meta_data: MetaData):
         self.delta = meta_data.delta
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
+        self._calculation_omega()
 
     def _set_x(self, meta_data: MetaData):
         x = []
@@ -47,6 +49,23 @@ class Data:
                 index += 1
 
         self.y = np.array(y)
+
+    def _calculation_omega(self):
+        omega = []
+
+        n = self.y.size
+        for k in range(n - 1):
+            for s in range(k + 1, n):
+                exp = self.y[k] - self.y[s]
+                if exp > 0:
+                    omega.append(1)
+                elif exp < 0:
+                    omega.append(-1)
+                else:  # == 0
+                    omega.append(0)
+
+        self.omega = np.array(omega)
+
 
 # problem = pulp.LpProblem('', pulp.const.LpMinimize)
 #
