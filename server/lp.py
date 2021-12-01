@@ -88,6 +88,7 @@ class LpSolve:
         self._create_variable_l()
         self._create_variable_beta_gamma()
         self._build_function_c()
+        self._build_restrictions()
 
     def _create_variable_u_v(self):
         for index in range(self.data.y.size):
@@ -124,6 +125,34 @@ class LpSolve:
             params.append((self._vars.get(f'g{index}'), self.data.delta))
 
         self._problem += pulp.LpAffineExpression(params), 'Функция цели'
+
+    def _build_restrictions(self):
+        index_restriction = 0
+        for index in range(self.data.y.size):
+            params = []
+            for index_x in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index_x}'), self.data.x[index][index_x]))
+                params.append((self._vars.get(f'g{index_x}'), -1 * self.data.x[index][index_x]))
+            params.append((self._vars.get(f'u{index}'), 1))
+            params.append((self._vars.get(f'v{index}'), -1))
+
+            self._problem += pulp.LpAffineExpression(params) == self.data.y[index], str(index_restriction)
+            index_restriction += 1
+
+        index_omega = 0
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params = []
+                for index in range(len(self.data.x[0])):
+                    x = self.data.x[k][index] - self.data.x[s][index]
+                    params.append((self._vars.get(f'b{index}'), x * self.data.omega[index_omega]))
+                    params.append((self._vars.get(f'g{index}'), -1 * x * self.data.omega[index_omega]))
+                params.append((self._vars.get(f'l{k}{s}'), 1))
+
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+                index_restriction += 1
+
+                index_omega += 1
 
 
 # 5  1 6
