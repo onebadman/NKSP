@@ -78,13 +78,16 @@ class LpSolve:
 
     data: Data
     _vars: dict
+    _problem: pulp.LpProblem
 
     def __init__(self, data: Data):
         self.data = data
         self._vars = {}
+        self._problem = pulp.LpProblem('0', pulp.const.LpMinimize)
         self._create_variable_u_v()
         self._create_variable_l()
         self._create_variable_beta_gamma()
+        self._build_function_c()
 
     def _create_variable_u_v(self):
         for index in range(self.data.y.size):
@@ -105,6 +108,23 @@ class LpSolve:
             var_name_gamma = f'g{index}'
             self._vars.setdefault(var_name_beta, pulp.LpVariable(var_name_beta, lowBound=0))
             self._vars.setdefault(var_name_gamma, pulp.LpVariable(var_name_gamma, lowBound=0))
+
+    def _build_function_c(self):
+        params = []
+
+        for index in range(self.data.y.size):
+            params.append((self._vars.get(f'u{index}'), self.data.r))
+        for index in range(self.data.y.size):
+            params.append((self._vars.get(f'v{index}'), self.data.r))
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params.append((self._vars.get(f'l{k}{s}'), 1 - self.data.r))
+        for index in range(len(self.data.x[0])):
+            params.append((self._vars.get(f'b{index}'), self.data.delta))
+            params.append((self._vars.get(f'g{index}'), self.data.delta))
+
+        self._problem += pulp.LpAffineExpression(params), 'Функция цели'
+
 
 # 5  1 6
 # 7  7 8
