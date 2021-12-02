@@ -89,9 +89,6 @@ def main():
     meta_data.set_active_menu(MenuTypes.MAIN)
 
     _session.meta_data = meta_data
-
-    print(_session.meta_data)
-
     return render_template('main.html', meta_data=meta_data)
 
 
@@ -108,7 +105,6 @@ def load_get():
     meta_data.set_active_menu(MenuTypes.LOAD)
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return render_template('load.html', meta_data=meta_data)
 
 
@@ -134,7 +130,6 @@ def load_post():
         del _list
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return render_template('load.html', meta_data=meta_data)
 
 
@@ -151,7 +146,6 @@ def data_get():
     meta_data.set_active_menu(MenuTypes.DATA)
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return render_template('data.html', meta_data=meta_data)
 
 
@@ -168,7 +162,6 @@ def answer():
     meta_data.set_active_menu(MenuTypes.ANSWER)
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return render_template('answer.html', meta_data=meta_data)
 
 
@@ -185,7 +178,6 @@ def form_free_chlen():
     meta_data.set_free_chlen(request.form)
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return redirect(url_for('load_get'))
 
 
@@ -202,7 +194,6 @@ def form_data():
     meta_data.set_data(request.form)
 
     _session.meta_data = meta_data
-    print(_session.meta_data)
     return redirect(url_for('answer'))
 
 

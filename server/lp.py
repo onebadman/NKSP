@@ -1,5 +1,9 @@
+import math
+
 import numpy as np
 import pulp
+
+from functools import reduce
 
 from server.meta_data import MetaData
 
@@ -71,17 +75,47 @@ class Data:
         self.omega = np.array(omega)
 
 
+class Result:
+    a: list
+    eps: list
+    l: list
+    yy: list
+    e: float
+
+    def __init__(self):
+        self.a = []
+        self.eps = []
+        self.l = []
+        self.yy = []
+
+    @property
+    def sum_l(self) -> float:
+        return sum(self.l)
+
+    def set_yy(self, _x: np.ndarray):
+        self.yy = list(map(lambda item: sum(list(map(lambda x, a: x * a, item, self.a))), _x))
+
+    def epsilon_e(self, _y: np.ndarray):
+        """
+        Расчёт оценки ошибки аппроксимации.
+        """
+        self.e = 1 / len(_y) * reduce(
+            lambda x, y: x + y, list(map(lambda x, y: math.fabs((y - x) / y), self.yy, _y))) * 100
+
+
 class LpSolve:
     """
     Задача линейного программирования.
     """
 
     data: Data
+    result: Result
     _vars: dict
     _problem: pulp.LpProblem
 
     def __init__(self, data: Data):
         self.data = data
+        self.result = Result()
         self._vars = {}
         self._problem = pulp.LpProblem('0', pulp.const.LpMinimize)
         self._create_variable_u_v()
@@ -89,6 +123,9 @@ class LpSolve:
         self._create_variable_beta_gamma()
         self._build_function_c()
         self._build_restrictions()
+
+        self._execute()
+        self._set_result()
 
     def _create_variable_u_v(self):
         for index in range(self.data.y.size):
@@ -153,6 +190,32 @@ class LpSolve:
                 index_restriction += 1
 
                 index_omega += 1
+
+    def _execute(self):
+        self._problem.solve()
+
+    def _set_result(self):
+        b, g, u, v = [], [], [], []
+
+        for var in self._problem.variables():
+            if 'b' in var.name:
+                b.append(var.varValue)
+            elif 'g' in var.name:
+                g.append(var.varValue)
+            elif 'l' in var.name:
+                self.result.l.append(var.varValue)
+            elif 'u' in var.name:
+                u.append(var.varValue)
+            elif 'v' in var.name:
+                v.append(var.varValue)
+
+        for index in range(len(b)):
+            self.result.a.append(b[index] - g[index])
+        for index in range(len(u)):
+            self.result.eps.append(u[index] - v[index])
+
+        self.result.set_yy(self.data.x)
+        self.result.epsilon_e(self.data.y)
 
 
 # 5  1 6
