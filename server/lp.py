@@ -81,6 +81,7 @@ class Result:
     l: list
     yy: list
     e: float
+    count_rows: int
 
     def __init__(self):
         self.a = []
@@ -101,6 +102,51 @@ class Result:
         """
         self.e = 1 / len(_y) * reduce(
             lambda x, y: x + y, list(map(lambda x, y: math.fabs((y - x) / y), self.yy, _y))) * 100
+
+    def set_max_rows(self):
+        self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
+
+    def get_max_rows(self):
+        return list(map(int, range(self.count_rows)))
+
+    def print(self) -> list:
+        arr = []
+
+        for index in range(self.count_rows):
+            line = []
+
+            if index < len(self.a):
+                line.append(self.a[index])
+            else:
+                line.append(None)
+
+            if index < len(self.l):
+                line.append(self.l[index])
+            else:
+                line.append(None)
+
+            if index == 0:
+                line.append(self.sum_l)
+            else:
+                line.append(None)
+
+            if index < len(self.eps):
+                line.append(self.eps[index])
+            else:
+                line.append(None)
+
+            if index == 0:
+                line.append(self.e)
+            else:
+                line.append(None)
+
+            if index < len(self.yy):
+                line.append(self.yy[index])
+            else:
+                line.append(None)
+
+            arr.append(line)
+        return arr
 
 
 class LpSolve:
@@ -216,6 +262,7 @@ class LpSolve:
 
         self.result.set_yy(self.data.x)
         self.result.epsilon_e(self.data.y)
+        self.result.set_max_rows()
 
 
 # 5  1 6

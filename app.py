@@ -2,6 +2,7 @@ import datetime
 
 from flask import Flask, render_template, session, request, redirect, url_for
 
+from server.lp import Data, LpSolve
 from server.meta_data import MenuTypes
 from server.session import Session
 
@@ -161,8 +162,10 @@ def answer():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
 
+    result = LpSolve(Data(meta_data)).result
+
     _session.meta_data = meta_data
-    return render_template('answer.html', meta_data=meta_data)
+    return render_template('answer.html', meta_data=meta_data, result=result)
 
 
 @app.route('/form/free_chlen', methods=['POST'])
