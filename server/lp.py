@@ -81,6 +81,7 @@ class Result:
     l: list
     yy: list
     e: float
+    osp: float
     count_rows: int
 
     def __init__(self):
@@ -92,6 +93,17 @@ class Result:
     @property
     def sum_l(self) -> float:
         return sum(self.l)
+
+    def set_osp(self, y: np.ndarray):
+        """
+        Обобщенный критерий согласованности поведения.
+        """
+        a = []
+        for i in range(len(y) - 1):
+            for j in range(i + 1, len(y)):
+                a.append(self._sign((self.yy[i] - self.yy[j]) * (y[i] - y[j])))
+
+        self.osp = sum(a)
 
     def set_yy(self, _x: np.ndarray):
         self.yy = list(map(lambda item: sum(list(map(lambda x, a: x * a, item, self.a))), _x))
@@ -140,13 +152,17 @@ class Result:
             else:
                 line.append(None)
 
-            if index < len(self.yy):
-                line.append(self.yy[index])
+            if index == 0:
+                line.append(self.osp)
             else:
                 line.append(None)
 
             arr.append(line)
         return arr
+
+    @staticmethod
+    def _sign(x) -> int:
+        return 1 if x > 0 else 0
 
 
 class LpSolve:
@@ -263,6 +279,7 @@ class LpSolve:
         self.result.set_yy(self.data.x)
         self.result.epsilon_e(self.data.y)
         self.result.set_max_rows()
+        self.result.set_osp(self.data.y)
 
 
 # 5  1 6
