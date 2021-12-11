@@ -22,7 +22,7 @@ def render_table(data: list):
     template = DocxTemplate(path)
 
     context = {
-        'headers': ['α', 'lks', '∑lks', 'ε', 'E', 'КСП', 'M', 'N'],
+        'headers': ['α', 'lks', '∑lks', 'ε', 'E', 'КСП', 'M', 'Ñ'],
         'data': data
     }
 
