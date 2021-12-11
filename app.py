@@ -1,10 +1,12 @@
 import datetime
 
-from flask import Flask, render_template, session, request, redirect, url_for
+import pytz as pytz
+from flask import Flask, render_template, session, request, redirect, url_for, send_file
 
 from server.lp import Data, LpSolve
 from server.meta_data import MenuTypes
 from server.session import Session
+from server.document import render_table
 
 
 app = Flask(__name__)
@@ -165,6 +167,8 @@ def answer():
     result = LpSolve(Data(meta_data)).result
 
     _session.meta_data = meta_data
+    _session.result = result
+
     return render_template('answer.html', meta_data=meta_data, result=result)
 
 
@@ -198,6 +202,25 @@ def form_data():
 
     _session.meta_data = meta_data
     return redirect(url_for('answer'))
+
+
+@app.route('/form/load_result', methods=["POST"])
+def form_load_result():
+    _session = get_session()
+    save_session(_session)
+
+    result = _session.result
+    file_stream = render_table(result.print())
+
+    try:
+        return send_file(
+            file_stream,
+            as_attachment=True,
+            download_name=f'result_'
+                          f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
+                          f'.docx')
+    finally:
+        file_stream.close()
 
 
 if __name__ == '__main__':
