@@ -83,6 +83,7 @@ class Result:
     e: float
     osp: float
     count_rows: int
+    N: float
 
     def __init__(self):
         self.a = []
@@ -105,7 +106,17 @@ class Result:
 
         return m
 
-    def set_osp(self, y: np.ndarray):
+    def calculation(self, _x: np.ndarray, _y: np.ndarray):
+        """
+        Шаблонный метод для вычисления агрегированных результатов вычислений.
+        """
+        self._set_yy(_x)
+        self._epsilon_e(_y)
+        self._set_max_rows()
+        self._set_osp(_y)
+        self._set_n(_y)
+
+    def _set_osp(self, y: np.ndarray):
         """
         Обобщенный критерий согласованности поведения.
         """
@@ -116,18 +127,32 @@ class Result:
 
         self.osp = sum(a)
 
-    def set_yy(self, _x: np.ndarray):
+    def _set_yy(self, _x: np.ndarray):
         self.yy = list(map(lambda item: sum(list(map(lambda x, a: x * a, item, self.a))), _x))
 
-    def epsilon_e(self, _y: np.ndarray):
+    def _epsilon_e(self, _y: np.ndarray):
         """
         Расчёт оценки ошибки аппроксимации.
         """
         self.e = 1 / len(_y) * reduce(
             lambda x, y: x + y, list(map(lambda x, y: math.fabs((y - x) / y), self.yy, _y))) * 100
 
-    def set_max_rows(self):
+    def _set_max_rows(self):
         self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
+
+    def _set_n(self, _y: np.ndarray):
+        """
+        Расчёт оценки непрерывного критерия согласованности поведения.
+        """
+
+        _sum = 0
+        index_l = 0
+        for k in range(_y.size - 1):
+            for s in range(k + 1, _y.size):
+                _sum += (self.l[index_l] / (_y[k] + _y[s]))
+                index_l += 1
+
+        self.N = _sum * ((2 * 100) / (_y.size * (_y.size - 1)))
 
     def get_max_rows(self):
         return list(map(int, range(self.count_rows)))
@@ -170,6 +195,11 @@ class Result:
 
             if index == 0:
                 line.append(self.m)
+            else:
+                line.append(None)
+
+            if index == 0:
+                line.append(self.N)
             else:
                 line.append(None)
 
@@ -292,10 +322,7 @@ class LpSolve:
         for index in range(len(u)):
             self.result.eps.append(u[index] - v[index])
 
-        self.result.set_yy(self.data.x)
-        self.result.epsilon_e(self.data.y)
-        self.result.set_max_rows()
-        self.result.set_osp(self.data.y)
+        self.result.calculation(self.data.x, self.data.y)
 
 
 # 5  1 6
