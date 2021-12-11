@@ -5,6 +5,12 @@ services:
     build: .
     command: python app.py
     container_name: nksp
+    environment:
+      - SECRET_FLASK=secret_flask
+      - SECRET_JWT=secret_jwt
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SPACE=dev
     ports:
       - '5000:5000'
     networks:

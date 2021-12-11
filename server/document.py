@@ -16,7 +16,7 @@ def render_table(data: list):
     data = escape_data(data)
 
     input_file_name = "result_table.docx"
-    basedir = '/home/ashum/projects/NKSP/resources/'  # todo вынести в переменные окружения
+    basedir = os.environ.get('BASE_DIR')
     path = os.path.join(basedir, "", input_file_name)
 
     template = DocxTemplate(path)
