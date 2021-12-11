@@ -94,6 +94,17 @@ class Result:
     def sum_l(self) -> float:
         return sum(self.l)
 
+    @property
+    def m(self) -> float:
+        """
+        Получает сумму модулей ошибок.
+        """
+        m = 0
+        for item in self.eps:
+            m += abs(item)
+
+        return m
+
     def set_osp(self, y: np.ndarray):
         """
         Обобщенный критерий согласованности поведения.
@@ -154,6 +165,11 @@ class Result:
 
             if index == 0:
                 line.append(self.osp)
+            else:
+                line.append(None)
+
+            if index == 0:
+                line.append(self.m)
             else:
                 line.append(None)
 
