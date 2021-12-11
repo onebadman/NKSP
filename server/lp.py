@@ -1,3 +1,4 @@
+import json
 import math
 
 import numpy as np
@@ -90,6 +91,28 @@ class Result:
         self.eps = []
         self.l = []
         self.yy = []
+
+    @staticmethod
+    def new_result(data=None):
+        result = Result()
+        if data is not None:
+            result.a = Result.get_value(data, 'a')
+            result.eps = Result.get_value(data, 'eps')
+            result.l = Result.get_value(data, 'l')
+            result.yy = Result.get_value(data, 'yy')
+            result.e = Result.get_value(data, 'e')
+            result.osp = Result.get_value(data, 'osp')
+            result.count_rows = Result.get_value(data, 'count_rows')
+            result.N = Result.get_value(data, 'N')
+
+        return result
+
+    @staticmethod
+    def get_value(data, key):
+        try:
+            return data[key]
+        except KeyError:
+            return None
 
     @property
     def sum_l(self) -> float:
@@ -209,6 +232,16 @@ class Result:
     @staticmethod
     def _sign(x) -> int:
         return 1 if x > 0 else 0
+
+    class DataEncoder(json.JSONEncoder):
+        """
+        Класс кодирует модель MetaData в JSON формат.
+        """
+
+        def default(self, obj):
+            if isinstance(obj, Result):
+                return obj.__dict__
+            return json.JSONEncoder.default(self, obj)
 
 
 class LpSolve:

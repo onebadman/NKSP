@@ -4,6 +4,7 @@ import json
 import jwt
 import redis
 
+from server.lp import Result
 from server.meta_data import MetaData
 
 
@@ -39,6 +40,7 @@ class Session:
 
     token: Token
     _meta_data: MetaData
+    _result: Result
 
     def __init__(self, token: Token = None):
         if token is None:
@@ -47,6 +49,7 @@ class Session:
             self.token = token
 
         self._meta_data = None
+        self._result = None
 
     @property
     def meta_data(self) -> MetaData:
@@ -61,6 +64,22 @@ class Session:
     @meta_data.setter
     def meta_data(self, new_meta_data: MetaData):
         self._meta_data = new_meta_data
+
+        self.save()
+
+    @property
+    def result(self) -> Result:
+        r = Session._get_redis()
+        if r.get(self.token.body) != "" and 'result' in json.loads(r.get(self.token.body)):
+            self._result = Result.new_result(json.loads(r.get(self.token.body))['result'])
+        else:
+            self._result = Result.new_result()
+
+        return self._result
+
+    @result.setter
+    def result(self, new_result: Result):
+        self._result = new_result
 
         self.save()
 
@@ -92,7 +111,8 @@ class Session:
 
     def save(self):
         r = Session._get_redis()
-        r.set(self.token.body, f'{{"meta_data":{json.dumps(self._meta_data, cls=MetaData.DataEncoder)}}}')
+        r.set(self.token.body, f'{{"meta_data":{json.dumps(self._meta_data, cls=MetaData.DataEncoder)},'
+                               f'"result":{json.dumps(self._result, cls=Result.DataEncoder)}}}')
         r.expireat(
             self.token.body,
             datetime.datetime.fromisoformat(f'{datetime.date.today() + datetime.timedelta(days=1)} 04:00:00'))
