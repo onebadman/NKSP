@@ -6,6 +6,7 @@ import redis
 
 from server.lp import Result
 from server.meta_data import MetaData
+from server.config import REDIS_HOST, REDIS_PORT, SECRET_JWT
 
 
 class Token:
@@ -19,7 +20,7 @@ class Token:
     def __init__(self, token: str = None):
         if token is None:
             self.create_time = datetime.datetime.now()
-            self.body = jwt.encode(payload={'create_time': str(self.create_time)}, key='secret', algorithm="HS512")
+            self.body = jwt.encode(payload={'create_time': str(self.create_time)}, key=SECRET_JWT, algorithm="HS512")
         else:
             data = Token.decode(token)
             self.body = token
@@ -27,7 +28,7 @@ class Token:
 
     @staticmethod
     def decode(token: str):
-        return jwt.decode(jwt=token, key='secret', algorithms="HS512")
+        return jwt.decode(jwt=token, key=SECRET_JWT, algorithms="HS512")
 
     def __str__(self):
         return self.body
@@ -120,7 +121,7 @@ class Session:
 
     @staticmethod
     def _get_redis() -> redis.Redis:
-        return redis.Redis(decode_responses=True)
+        return redis.Redis(decode_responses=True, host=REDIS_HOST, port=REDIS_PORT)
 
     class DataEncoder(json.JSONEncoder):
         """

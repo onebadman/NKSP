@@ -7,10 +7,11 @@ from server.lp import Data, LpSolve
 from server.meta_data import MenuTypes
 from server.session import Session
 from server.document import render_table
+from server.config import SECRET_FLASK, SPACE
 
 
 app = Flask(__name__)
-app.secret_key = 'd23f32f24f'
+app.secret_key = SECRET_FLASK
 ALLOWED_EXTENSIONS = set(['txt'])
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 app.permanent_session_lifetime = datetime.timedelta(days=1)
@@ -212,16 +213,18 @@ def form_load_result():
     result = _session.result
     file_stream = render_table(result.print())
 
-    try:
-        return send_file(
-            file_stream,
-            as_attachment=True,
-            download_name=f'result_'
-                          f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
-                          f'.docx')
-    finally:
-        file_stream.close()
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=f'result_'
+                      f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
+                      f'.docx')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    if SPACE == 'dev':
+        app.run(host='0.0.0.0', debug=True)
+    else:
+        from waitress import serve
+
+        serve(app, host="0.0.0.0", port=5000)
