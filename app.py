@@ -173,22 +173,6 @@ def answer():
     return render_template('answer.html', meta_data=meta_data, result=result)
 
 
-@app.route('/form/free_chlen', methods=['POST'])
-def form_free_chlen():
-    """
-    Обрабатывает форму setParams в шаблоне main.html.
-    """
-
-    _session = get_session()
-    save_session(_session)
-
-    meta_data = _session.meta_data
-    meta_data.set_free_chlen(request.form)
-
-    _session.meta_data = meta_data
-    return redirect(url_for('load_get'))
-
-
 @app.route('/form/data', methods=["POST"])
 def form_data():
     """

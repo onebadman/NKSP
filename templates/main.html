@@ -13,16 +13,7 @@
         а также его дискретное представление.
     </p>
 
-    <form name="setParams" action="/form/free_chlen" method="post">
-        <div class="row align-items-start">
-            <div class="col">
-                <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" name="free_chlen" {% if meta_data.free_chlen %} checked {% endif %}>
-                    <label class="form-check-label" for="exampleCheck1">Использовать свободный член?</label>
-                </div>
-            </div>
-        </div>
-        <br>
+    <form name="loadData" action="/load" method="post">
         <button type="submit" class="btn btn-primary">Загрузить исходные данные</button>
     </form>
 
