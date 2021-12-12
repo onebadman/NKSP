@@ -79,6 +79,9 @@ class MetaData:
         self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
         self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
 
+    def update_r(self, form):
+        self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
+
     def _drop_active_menu(self):
         self.menu_active_main = False
         self.menu_active_load = False

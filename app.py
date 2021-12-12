@@ -205,6 +205,18 @@ def form_load_result():
                       f'.docx')
 
 
+@app.route('/form/update_r', methods=['POST'])
+def form_update_r():
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.update_r(request.form)
+
+    _session.meta_data = meta_data
+    return redirect(url_for('answer'))
+
+
 if __name__ == '__main__':
     if SPACE == 'dev':
         app.run(host='0.0.0.0', debug=True)
