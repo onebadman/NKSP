@@ -21,7 +21,7 @@ services:
     image: redis:6.0.8
     container_name: redis
     ports:
-      - '6379:6379'
+      - '6389:6379'
     networks:
       - nksp_net
 
