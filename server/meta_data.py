@@ -9,6 +9,19 @@ class MenuTypes(enum.Enum):
     ANSWER = 'ANSWER'
 
 
+class Mode(str, enum.Enum):
+    """Режим расчётов."""
+
+    MNM = 'MODE_MNM'
+    MAO = 'MODE_MAO'
+
+    @staticmethod
+    def build(value):
+        if not value:
+            return Mode.MNM
+        return Mode(value)
+
+
 class MetaData:
     """
     Сущность для хранения и взаимодействия с клиентскими метаданными.
@@ -21,6 +34,8 @@ class MetaData:
     menu_active_answer: bool
 
     load_data: list
+
+    mode: Mode
 
     free_chlen: bool
     r: float  # Уровень приоритета суммы модулей.
@@ -35,6 +50,8 @@ class MetaData:
             self.menu_active_answer = MetaData.get_value(data, 'menu_active_answer')
 
             self.load_data = MetaData.get_value(data, 'load_data')
+
+            self.mode = Mode.build(MetaData.get_value(data, 'mode'))
 
             self.free_chlen = MetaData.get_value(data, 'free_chlen')
             self.r = MetaData.get_value(data, 'r')
@@ -75,9 +92,11 @@ class MetaData:
 
     def set_data(self, form):
         self.set_free_chlen(form)
-        self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
-        self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
-        self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
+
+        if self.mode is Mode.MNM:
+            self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
+            self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
+            self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
 
     def update_r(self, form):
         self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
@@ -87,6 +106,9 @@ class MetaData:
         self.menu_active_load = False
         self.menu_active_data = False
         self.menu_active_answer = False
+
+    def set_mode(self, form):
+        self.mode = Mode(self.get_value(form, 'mode') if self.get_value(form, 'mode') else Mode.MNM)
 
     @staticmethod
     def get_value(data, key):

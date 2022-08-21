@@ -166,7 +166,7 @@ def answer():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
 
-    result = LpSolve(Data(meta_data)).result
+    result = LpSolve(meta_data.mode, Data(meta_data)).result
 
     _session.meta_data = meta_data
     _session.result = result
@@ -216,6 +216,18 @@ def form_update_r():
 
     _session.meta_data = meta_data
     return redirect(url_for('answer'))
+
+
+@app.route('/form/change-mode', methods=['POST'])
+def form_change_mode():
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_mode(request.form)
+
+    _session.meta_data = meta_data
+    return redirect(url_for('data_get'))
 
 
 @app.route('/favicon.ico')
