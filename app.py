@@ -1,7 +1,8 @@
 import datetime
+import os
 
 import pytz as pytz
-from flask import Flask, render_template, session, request, redirect, url_for, send_file
+from flask import Flask, render_template, session, request, redirect, url_for, send_file, send_from_directory
 
 from server.lp import Data, LpSolve
 from server.meta_data import MenuTypes
@@ -215,6 +216,12 @@ def form_update_r():
 
     _session.meta_data = meta_data
     return redirect(url_for('answer'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 if __name__ == '__main__':
