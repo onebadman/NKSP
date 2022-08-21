@@ -4,9 +4,27 @@
 {% block content %}
 
   {% if meta_data.load_data %}
+    <form action="/form/change-mode" method="post" name="changeMode">
+      <div class="row align-items-start">
+        <div class="row mb-3">
+          <label class="col-sm-3 col-form-label">Выберете режим расчётов</label>
+          <div class="col-sm-2">
+            <select class="form-select" aria-label="Default select example" name="mode">
+              <option selected value="mode_mnm">МНМ</option>
+              <option value="mode_mao">МАО</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Изменить режим расчётов</button>
+    </form>
+
+    <br>
+
     {{ render_table_load_data(meta_data) }}
 
     <br>
+
     <form action="/form/data" method="post" name="setData">
       <div class="row align-items-start">
         <div class="row mb-3">
