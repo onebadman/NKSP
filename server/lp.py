@@ -6,7 +6,7 @@ import pulp
 
 from functools import reduce
 
-from server.meta_data import MetaData
+from server.meta_data import MetaData, Mode
 
 
 class Data:
@@ -249,12 +249,14 @@ class LpSolve:
     Задача линейного программирования.
     """
 
+    mode: Mode
     data: Data
     result: Result
     _vars: dict
     _problem: pulp.LpProblem
 
-    def __init__(self, data: Data):
+    def __init__(self, mode: Mode, data: Data):
+        self.mode = mode
         self.data = data
         self.result = Result()
         self._vars = {}
