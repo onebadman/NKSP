@@ -17,6 +17,7 @@ class Data:
     x: np.ndarray
     y: np.ndarray
     r: float
+    m: int
     delta: float
     omega: np.ndarray
 
@@ -25,7 +26,12 @@ class Data:
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
-        self._calculation_omega()
+
+        if meta_data.mode is Mode.MNM:
+            self._calculation_omega()
+
+        if meta_data.mode is Mode.MAO:
+            self.m = meta_data.m
 
     def _set_x(self, meta_data: MetaData):
         x = []
