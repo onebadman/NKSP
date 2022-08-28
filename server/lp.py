@@ -26,9 +26,7 @@ class Data:
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
-
-        if meta_data.mode is Mode.MNM:
-            self._calculation_omega()
+        self._calculation_omega()
 
         if meta_data.mode is Mode.MAO:
             self.m = meta_data.m
@@ -269,9 +267,19 @@ class LpSolve:
         self._problem = pulp.LpProblem('0', pulp.const.LpMinimize)
         self._create_variable_u_v()
         self._create_variable_l()
-        self._create_variable_beta_gamma()
+
+        if self.mode is Mode.MNM:
+            self._create_variable_beta_gamma()
+        elif self.mode is Mode.MAO:
+            self._create_variable_z()
+            self._create_variable_sigma()
+
         self._build_function_c()
-        self._build_restrictions()
+
+        if self.mode is Mode.MNM:
+            self._build_restrictions_for_mnm()
+        elif self.mode is Mode.MAO:
+            self._build_restrictions_for_mao()
 
         self._execute()
         self._set_result()
@@ -296,6 +304,17 @@ class LpSolve:
             self._vars.setdefault(var_name_beta, pulp.LpVariable(var_name_beta, lowBound=0))
             self._vars.setdefault(var_name_gamma, pulp.LpVariable(var_name_gamma, lowBound=0))
 
+    def _create_variable_z(self):
+        for index in range(self.data.y.size):
+            var_name = f'z{index}'
+            self._vars.setdefault(var_name, pulp.LpVariable(var_name, lowBound=0))
+
+    def _create_variable_sigma(self):
+        for k in range(self.data.x.size):
+            for i in range(len(self.data.x[0])):
+                var_name = f'sigma{k}{i}'
+                self._vars.setdefault(var_name, pulp.LpVariable(var_name, cat=pulp.const.LpBinary))
+
     def _build_function_c(self):
         params = []
 
@@ -306,13 +325,15 @@ class LpSolve:
         for k in range(self.data.y.size - 1):
             for s in range(k + 1, self.data.y.size):
                 params.append((self._vars.get(f'l{k}{s}'), 1 - self.data.r))
-        for index in range(len(self.data.x[0])):
-            params.append((self._vars.get(f'b{index}'), self.data.delta))
-            params.append((self._vars.get(f'g{index}'), self.data.delta))
+
+        if self.mode is Mode.MNM:
+            for index in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index}'), self.data.delta))
+                params.append((self._vars.get(f'g{index}'), self.data.delta))
 
         self._problem += pulp.LpAffineExpression(params), 'Функция цели'
 
-    def _build_restrictions(self):
+    def _build_restrictions_for_mnm(self):
         index_restriction = 0
         for index in range(self.data.y.size):
             params = []
@@ -339,6 +360,52 @@ class LpSolve:
                 index_restriction += 1
 
                 index_omega += 1
+
+    def _build_restrictions_for_mao(self):
+        index_restriction = 0
+        for i in range(self.data.y.size):
+            params = [(self._vars.get(f'z{i}'), 1), (self._vars.get(f'u{i}'), 1), (self._vars.get(f'v{i}'), -1)]
+            self._problem += pulp.LpAffineExpression(params) == self.data.y[i], str(index_restriction)
+
+            index_restriction += 1
+
+        for k in range(self.data.y.size):
+            for i in range(len(self.data.x[0])):
+                params = [(self._vars.get(f'u{i}'), self.data.x[k][i]),
+                          (self._vars.get(f'v{i}'), -1 * self.data.x[k][i]),
+                          (self._vars.get(f'z{k}'), -1)]
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+
+                index_restriction += 1
+
+        for k in range(self.data.y.size):
+            for i in range(len(self.data.x[0])):
+                params = [(self._vars.get(f'u{i}'), self.data.x[k][i]),
+                          (self._vars.get(f'v{i}'), -1 * self.data.x[k][i]),
+                          (self._vars.get(f'z{k}'), -1),
+                          (self._vars.get(f'sigma{k}{i}'), self.data.m)]
+                self._problem += pulp.LpAffineExpression(params) <= self.data.m, str(index_restriction)
+
+                index_restriction += 1
+
+        for k in range(self.data.y.size):
+            params = []
+            for i in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'sigma{k}{i}'), 1))
+            self._problem += pulp.LpAffineExpression(params) == 1, str(index_restriction)
+
+            index_restriction += 1
+
+        index_omega = 0
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params = [(self._vars.get(f'z{k}'), self.data.omega[index_omega]),
+                          (self._vars.get(f'z{s}'), -1 * self.data.omega[index_omega]),
+                          (self._vars.get(f'l{k}{s}'), 1)]
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+                index_omega += 1
+
+                index_restriction += 1
 
     def _execute(self):
         self._problem.solve()

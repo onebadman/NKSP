@@ -27,14 +27,14 @@
 
     <form action="/form/data" method="post" name="setData">
       <div class="row align-items-start">
-        {% if meta_data.mode.value == 'MODE_MNM' %}
-          <div class="row mb-3">
-            <label for="inputData1" class="col-sm-3 col-form-label">Введите индекс зависимой переменной</label>
-            <div class="col-sm-2">
-              <input type="number" class="form-control" name="var_y"
-                     {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
-            </div>
+        <div class="row mb-3">
+          <label for="inputData1" class="col-sm-3 col-form-label">Введите индекс зависимой переменной</label>
+          <div class="col-sm-2">
+            <input type="number" class="form-control" name="var_y"
+                   {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
           </div>
+        </div>
+        {% if meta_data.mode.value == 'MODE_MNM' %}
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
             <div class="col-sm-2">
