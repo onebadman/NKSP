@@ -271,6 +271,7 @@ class LpSolve:
         if self.mode is Mode.MNM:
             self._create_variable_beta_gamma()
         elif self.mode is Mode.MAO:
+            self._create_variable_alfa()
             self._create_variable_z()
             self._create_variable_sigma()
 
@@ -314,6 +315,11 @@ class LpSolve:
             for i in range(len(self.data.x[0])):
                 var_name = f'sigma{k}{i}'
                 self._vars.setdefault(var_name, pulp.LpVariable(var_name, cat=pulp.const.LpBinary))
+
+    def _create_variable_alfa(self):
+        for i in range(self.data.x.size):
+            var_name = f'alfa{i}'
+            self._vars.setdefault(var_name, pulp.LpVariable(var_name))
 
     def _build_function_c(self):
         params = []
@@ -371,8 +377,7 @@ class LpSolve:
 
         for k in range(self.data.y.size):
             for i in range(len(self.data.x[0])):
-                params = [(self._vars.get(f'u{i}'), self.data.x[k][i]),
-                          (self._vars.get(f'v{i}'), -1 * self.data.x[k][i]),
+                params = [(self._vars.get(f'alfa{i}'), self.data.x[k][i]),
                           (self._vars.get(f'z{k}'), -1)]
                 self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
 
@@ -380,8 +385,7 @@ class LpSolve:
 
         for k in range(self.data.y.size):
             for i in range(len(self.data.x[0])):
-                params = [(self._vars.get(f'u{i}'), self.data.x[k][i]),
-                          (self._vars.get(f'v{i}'), -1 * self.data.x[k][i]),
+                params = [(self._vars.get(f'alfa{i}'), self.data.x[k][i]),
                           (self._vars.get(f'z{k}'), -1),
                           (self._vars.get(f'sigma{k}{i}'), self.data.m)]
                 self._problem += pulp.LpAffineExpression(params) <= self.data.m, str(index_restriction)
@@ -416,6 +420,8 @@ class LpSolve:
         for var in self._problem.variables():
             if 'b' in var.name:
                 b.append(var.varValue)
+            elif 'alfa' in var.name:
+                print(f'{var.name}  {var.varValue}')
             elif 'g' in var.name:
                 g.append(var.varValue)
             elif 'l' in var.name:
@@ -424,6 +430,7 @@ class LpSolve:
                 u.append(var.varValue)
             elif 'v' in var.name:
                 v.append(var.varValue)
+
 
         for index in range(len(b)):
             self.result.a.append(b[index] - g[index])
