@@ -28,7 +28,7 @@ class Data:
         self._set_x(meta_data)
         self._calculation_omega()
 
-        if meta_data.mode is Mode.MAO:
+        if meta_data.mode is Mode.PIECEWISE_GIVEN:
             self.m = meta_data.m
 
     def _set_x(self, meta_data: MetaData):
@@ -270,7 +270,7 @@ class LpSolve:
 
         if self.mode is Mode.MNM:
             self._create_variable_beta_gamma()
-        elif self.mode is Mode.MAO:
+        elif self.mode is Mode.PIECEWISE_GIVEN:
             self._create_variable_alfa()
             self._create_variable_z()
             self._create_variable_sigma()
@@ -279,7 +279,7 @@ class LpSolve:
 
         if self.mode is Mode.MNM:
             self._build_restrictions_for_mnm()
-        elif self.mode is Mode.MAO:
+        elif self.mode is Mode.PIECEWISE_GIVEN:
             self._build_restrictions_for_mao()
 
         self._execute()

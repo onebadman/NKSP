@@ -11,7 +11,7 @@
           <div class="col-sm-2">
             <select class="form-select" aria-label="Default select example" name="mode">
               <option {% if meta_data.mode.value == 'MODE_MNM' %} selected {% endif %} value="MODE_MNM">МНМ</option>
-              <option {% if meta_data.mode.value == 'MODE_MAO' %} selected {% endif %} value="MODE_MAO">МАО</option>
+              <option {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} selected {% endif %} value="MODE_PIECEWISE_GIVEN">Кусочно-заданная</option>
             </select>
           </div>
         </div>
@@ -50,7 +50,7 @@
             </div>
           </div>
         {% endif %}
-        {% if meta_data.mode.value == 'MODE_MAO' %}
+        {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
             <div class="col-sm-2">
