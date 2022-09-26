@@ -11,7 +11,10 @@
           <div class="col-sm-2">
             <select class="form-select" aria-label="Default select example" name="mode">
               <option {% if meta_data.mode.value == 'MODE_MNM' %} selected {% endif %} value="MODE_MNM">МНМ</option>
-              <option {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} selected {% endif %} value="MODE_PIECEWISE_GIVEN">Кусочно-заданная</option>
+              <option {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} selected {% endif %}
+                                                                              value="MODE_PIECEWISE_GIVEN">
+                Кусочно-заданная
+              </option>
             </select>
           </div>
         </div>
@@ -49,6 +52,13 @@
                      {% if meta_data.delta != None %}value="{{ meta_data.delta }}"{% endif %}>
             </div>
           </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="free_chlen" id="gridCheck"
+                  {% if meta_data.free_chlen %} checked {% endif %}>
+              <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
+            </div>
+          </div>
         {% endif %}
         {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
           <div class="row mb-3">
@@ -66,13 +76,6 @@
             </div>
           </div>
         {% endif %}
-        <div class="col-12">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="free_chlen" id="gridCheck"
-                {% if meta_data.free_chlen %} checked {% endif %}>
-            <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
-          </div>
-        </div>
       </div>
 
       <br>
