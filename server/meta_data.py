@@ -93,14 +93,14 @@ class MetaData:
             self.free_chlen = False
 
     def set_data(self, form):
-        self.set_free_chlen(form)
-
         self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
 
         if self.mode is Mode.MNM:
+            self.set_free_chlen(form)
             self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
             self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
         if self.mode is Mode.PIECEWISE_GIVEN:
+            self.free_chlen = False
             self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
             self.m = int(self.get_value(form, 'M')) if self.get_value(form, 'M') else 100000
 
