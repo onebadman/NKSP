@@ -13,7 +13,7 @@ class Mode(str, enum.Enum):
     """Режим расчётов."""
 
     MNM = 'MODE_MNM'
-    MAO = 'MODE_MAO'
+    PIECEWISE_GIVEN = 'MODE_PIECEWISE_GIVEN'
 
     @staticmethod
     def build(value):
@@ -100,7 +100,7 @@ class MetaData:
         if self.mode is Mode.MNM:
             self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
             self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
-        if self.mode is Mode.MAO:
+        if self.mode is Mode.PIECEWISE_GIVEN:
             self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
             self.m = int(self.get_value(form, 'M')) if self.get_value(form, 'M') else 100000
 
