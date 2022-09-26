@@ -81,6 +81,8 @@ class Data:
 
 
 class Result:
+    mode: Mode
+
     a: list
     eps: list
     l: list
@@ -89,12 +91,16 @@ class Result:
     osp: float
     count_rows: int
     N: float
+    resp_vector: list
 
-    def __init__(self):
+    def __init__(self, mode: Mode):
+        self.mode = mode
+
         self.a = []
         self.eps = []
         self.l = []
         self.yy = []
+        self.resp_vector = []
 
     @staticmethod
     def new_result(data=None):
@@ -142,6 +148,24 @@ class Result:
         self._set_max_rows()
         self._set_osp(_y)
         self._set_n(_y)
+
+        if self.mode == Mode.PIECEWISE_GIVEN:
+            self.response_vector(_x)
+
+    def response_vector(self, _x: np.ndarray):
+        """
+        Рассчитывает вектор срабатываний.
+        """
+        self.resp_vector = []
+
+        for i in range(len(self.yy)):
+            min_x = self.a[0] * _x[i][0]
+            min_index = 0
+            for j in range(1, len(self.a)):
+                if min_x > self.a[j] * _x[i][j]:
+                    min_x = self.a[j] * _x[i][j]
+                    min_index = j
+            self.resp_vector.append(min_index)
 
     def _set_osp(self, y: np.ndarray):
         """
@@ -210,6 +234,12 @@ class Result:
             else:
                 line.append(None)
 
+            if self.mode == Mode.PIECEWISE_GIVEN:
+                if index < len(self.resp_vector):
+                    line.append(self.resp_vector[index])
+                else:
+                    line.append(None)
+
             if index == 0:
                 line.append(self.e)
             else:
@@ -262,7 +292,7 @@ class LpSolve:
     def __init__(self, mode: Mode, data: Data):
         self.mode = mode
         self.data = data
-        self.result = Result()
+        self.result = Result(mode)
         self._vars = {}
         self._problem = pulp.LpProblem('0', pulp.const.LpMinimize)
         self._create_variable_u_v()
@@ -421,7 +451,7 @@ class LpSolve:
             if 'b' in var.name:
                 b.append(var.varValue)
             elif 'alfa' in var.name:
-                print(f'{var.name}  {var.varValue}')
+                self.result.a.append(var.varValue)
             elif 'g' in var.name:
                 g.append(var.varValue)
             elif 'l' in var.name:
@@ -430,7 +460,6 @@ class LpSolve:
                 u.append(var.varValue)
             elif 'v' in var.name:
                 v.append(var.varValue)
-
 
         for index in range(len(b)):
             self.result.a.append(b[index] - g[index])

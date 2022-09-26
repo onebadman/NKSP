@@ -24,6 +24,9 @@
         <th scope="col">lks</th>
         <th scope="col">∑lks</th>
         <th scope="col">ε</th>
+        {% if meta_data.mode == meta_data.mode.PIECEWISE_GIVEN %}
+          <th scope="col">Вектор срабатываний</th>
+        {% endif %}
         <th scope="col">E</th>
         <th scope="col">КСП</th>
         <th scope="col">M</th>
