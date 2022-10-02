@@ -102,7 +102,7 @@ class MetaData:
         if self.mode is Mode.PIECEWISE_GIVEN:
             self.free_chlen = False
             self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
-            self.m = int(self.get_value(form, 'M')) if self.get_value(form, 'M') else 100000
+            self.m = int(self.get_value(form, 'M')) * 1000 if self.get_value(form, 'M') else 100000 * 1000
 
     def update_r(self, form):
         self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
