@@ -165,7 +165,7 @@ class Result:
                 if min_x > self.a[j] * _x[i][j]:
                     min_x = self.a[j] * _x[i][j]
                     min_index = j
-            self.resp_vector.append(min_index)
+            self.resp_vector.append(min_index + 1)
 
     def _set_osp(self, y: np.ndarray):
         """
