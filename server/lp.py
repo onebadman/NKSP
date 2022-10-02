@@ -186,7 +186,7 @@ class Result:
         Расчёт оценки ошибки аппроксимации.
         """
         self.e = 1 / len(_y) * reduce(
-            lambda x, y: x + y, list(map(lambda x, y: math.fabs((y - x) / y), self.yy, _y))) * 100
+            lambda x, y: x + y, list(map(lambda x, y: math.fabs(x / y), self.eps, _y))) * 100
 
     def _set_max_rows(self):
         self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
