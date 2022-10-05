@@ -2,14 +2,25 @@
 
 {% block content %}
 
-  <form action="/form/update_r" method="post" name="updateR">
+  <form action="/form/update_params" method="post" name="updateParams">
     <div class="row align-items-start">
-      <div class="row">
-        <label for="inputData2" class="col-md-auto col-form-label">Уровень приоритета суммы модулей (r)</label>
-        <div class="col-md-auto">
+      <div class="row mb-3">
+        <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
+        <div class="col-sm-2">
           <input type="number" step="0.00000000001" class="form-control" name="r"
                  {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
         </div>
+      </div>
+      {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
+        <div class="row mb-3">
+          <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
+          <div class="col-sm-2">
+            <input type="number" step="1" class="form-control" name="M"
+                   {% if meta_data.m != None %}value="{{ meta_data.m }}"{% endif %}>
+          </div>
+        </div>
+      {% endif %}
+      <div class="row mb-3">
         <button type="submit" class="btn btn-primary col-md-auto">Получить решение</button>
       </div>
     </div>
