@@ -9,7 +9,7 @@
         <div class="row mb-3">
           <label class="col-sm-3 col-form-label">Выберете режим расчётов</label>
           <div class="col-sm-2">
-            <select class="form-select" aria-label="Default select example" name="mode">
+            <select class="form-select" style="min-width: max-content" aria-label="Default select example" name="mode">
               <option {% if meta_data.mode.value == 'MODE_MNM' %} selected {% endif %} value="MODE_MNM">МНМ</option>
               <option {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} selected {% endif %}
                                                                               value="MODE_PIECEWISE_GIVEN">
@@ -33,7 +33,7 @@
         <div class="row mb-3">
           <label for="inputData1" class="col-sm-3 col-form-label">Введите индекс зависимой переменной</label>
           <div class="col-sm-2">
-            <input type="number" class="form-control" name="var_y"
+            <input type="number" class="form-control" style="min-width: max-content" name="var_y"
                    {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
           </div>
         </div>
@@ -41,20 +41,20 @@
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
             <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" name="r"
+              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
                      {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
             </div>
           </div>
           <div class="row mb-3">
             <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина (δ)</label>
             <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" name="delta"
+              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="delta"
                      {% if meta_data.delta != None %}value="{{ meta_data.delta }}"{% endif %}>
             </div>
           </div>
           <div class="col-12">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="free_chlen" id="gridCheck"
+              <input class="form-check-input" type="checkbox" name="free_chlen" style="min-width: max-content" id="gridCheck"
                   {% if meta_data.free_chlen %} checked {% endif %}>
               <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
             </div>
@@ -64,14 +64,14 @@
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
             <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" name="r"
+              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
                      {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
             </div>
           </div>
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
             <div class="col-sm-2">
-              <input type="number" step="1" class="form-control" name="M"
+              <input type="number" step="1" class="form-control" style="min-width: max-content" name="M"
                      {% if meta_data.m != None %}value="{{ meta_data.m }}"{% endif %}>
             </div>
           </div>
