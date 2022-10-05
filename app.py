@@ -206,13 +206,13 @@ def form_load_result():
                       f'.docx')
 
 
-@app.route('/form/update_r', methods=['POST'])
-def form_update_r():
+@app.route('/form/update_params', methods=['POST'])
+def form_update_params():
     _session = get_session()
     save_session(_session)
 
     meta_data = _session.meta_data
-    meta_data.update_r(request.form)
+    meta_data.update_params(request.form)
 
     _session.meta_data = meta_data
     return redirect(url_for('answer'))
