@@ -2,47 +2,64 @@
 
 {% block content %}
 
-    <form action="/form/update_r" method="post" name="updateR">
-        <div class="row align-items-start">
-            <div class="row">
-                <label for="inputData2" class="col-md-auto col-form-label">Уровень приоритета суммы модулей (r)</label>
-                <div class="col-md-auto">
-                    <input type="number" step="0.00000000001" class="form-control" name="r" {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
-                </div>
-                <button type="submit" class="btn btn-primary col-md-auto">Получить решение</button>
-            </div>
+  <form action="/form/update_params" method="post" name="updateParams">
+    <div class="row align-items-start">
+      <div class="row mb-3">
+        <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
+        <div class="col-sm-2">
+          <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
+                 {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
         </div>
-    </form>
-    <br>
-
-    <div style="height: 500px" class="table-responsive">
-        <table class="table table-sm table-striped table-bordered">
-            <thead> <!-- Column names -->
-                <tr>
-                    <th scope="col">α</th>
-                    <th scope="col">lks</th>
-                    <th scope="col">∑lks</th>
-                    <th scope="col">ε</th>
-                    <th scope="col">E</th>
-                    <th scope="col">КСП</th>
-                    <th scope="col">M</th>
-                    <th scope="col">Ñ</th>
-                </tr>
-            </thead>
-            <tbody> <!-- Data -->
-                {% for index in result.get_max_rows() %}
-                    <tr>
-                        {% for item in result.print()[index] %}
-                            {% if item == None %}<td></td>{% else %}<td>{{item}}</td>{% endif %}
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <form name="loadResult" action="/form/load_result" method="post">
-            <button type="submit" class="btn btn-primary">Скачать результаты решения</button>
-        </form>
+      </div>
+      {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
+        <div class="row mb-3">
+          <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
+          <div class="col-sm-2">
+            <input type="number" step="1" class="form-control" style="min-width: max-content" name="M"
+                   {% if meta_data.m != None %}value="{{ meta_data.m }}"{% endif %}>
+          </div>
+        </div>
+      {% endif %}
+      <div class="row mb-3">
+        <button type="submit" class="btn btn-primary col-md-auto">Получить решение</button>
+      </div>
     </div>
+  </form>
+  <br>
+
+  <div style="height: 500px" class="table-responsive">
+    <table class="table table-sm table-striped table-bordered">
+      <thead> <!-- Column names -->
+      <tr>
+        <th scope="col">α</th>
+        <th scope="col">lks</th>
+        <th scope="col">∑lks</th>
+        <th scope="col">ε</th>
+        {% if meta_data.mode == meta_data.mode.PIECEWISE_GIVEN %}
+          <th scope="col">Вектор срабатываний</th>
+        {% endif %}
+        <th scope="col">E</th>
+        <th scope="col">КСП</th>
+        <th scope="col">M</th>
+        <th scope="col">Ñ</th>
+      </tr>
+      </thead>
+      <tbody> <!-- Data -->
+      {% for index in result.get_max_rows() %}
+        <tr>
+          {% for item in result.print()[index] %}
+            {% if item == None %}
+              <td></td>{% else %}
+              <td>{{ item }}</td>{% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <form name="loadResult" action="/form/load_result" method="post">
+      <button type="submit" class="btn btn-primary">Скачать результаты решения</button>
+    </form>
+  </div>
 
 {% endblock %}

@@ -1,7 +1,8 @@
 import datetime
+import os
 
 import pytz as pytz
-from flask import Flask, render_template, session, request, redirect, url_for, send_file
+from flask import Flask, render_template, session, request, redirect, url_for, send_file, send_from_directory
 
 from server.lp import Data, LpSolve
 from server.meta_data import MenuTypes
@@ -165,7 +166,7 @@ def answer():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
 
-    result = LpSolve(Data(meta_data)).result
+    result = LpSolve(meta_data.mode, Data(meta_data)).result
 
     _session.meta_data = meta_data
     _session.result = result
@@ -205,16 +206,34 @@ def form_load_result():
                       f'.docx')
 
 
-@app.route('/form/update_r', methods=['POST'])
-def form_update_r():
+@app.route('/form/update_params', methods=['POST'])
+def form_update_params():
     _session = get_session()
     save_session(_session)
 
     meta_data = _session.meta_data
-    meta_data.update_r(request.form)
+    meta_data.update_params(request.form)
 
     _session.meta_data = meta_data
     return redirect(url_for('answer'))
+
+
+@app.route('/form/change-mode', methods=['POST'])
+def form_change_mode():
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_mode(request.form)
+
+    _session.meta_data = meta_data
+    return redirect(url_for('data_get'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 if __name__ == '__main__':

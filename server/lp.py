@@ -6,7 +6,7 @@ import pulp
 
 from functools import reduce
 
-from server.meta_data import MetaData
+from server.meta_data import MetaData, Mode
 
 
 class Data:
@@ -17,6 +17,7 @@ class Data:
     x: np.ndarray
     y: np.ndarray
     r: float
+    m: int
     delta: float
     omega: np.ndarray
 
@@ -26,6 +27,9 @@ class Data:
         self._set_y(meta_data)
         self._set_x(meta_data)
         self._calculation_omega()
+
+        if meta_data.mode is Mode.PIECEWISE_GIVEN:
+            self.m = meta_data.m
 
     def _set_x(self, meta_data: MetaData):
         x = []
@@ -77,6 +81,8 @@ class Data:
 
 
 class Result:
+    mode: Mode
+
     a: list
     eps: list
     l: list
@@ -85,12 +91,16 @@ class Result:
     osp: float
     count_rows: int
     N: float
+    resp_vector: list
 
-    def __init__(self):
+    def __init__(self, mode: Mode):
+        self.mode = mode
+
         self.a = []
         self.eps = []
         self.l = []
         self.yy = []
+        self.resp_vector = []
 
     @staticmethod
     def new_result(data=None):
@@ -139,6 +149,24 @@ class Result:
         self._set_osp(_y)
         self._set_n(_y)
 
+        if self.mode == Mode.PIECEWISE_GIVEN:
+            self.response_vector(_x)
+
+    def response_vector(self, _x: np.ndarray):
+        """
+        Рассчитывает вектор срабатываний.
+        """
+        self.resp_vector = []
+
+        for i in range(len(self.yy)):
+            min_x = self.a[0] * _x[i][0]
+            min_index = 0
+            for j in range(1, len(self.a)):
+                if min_x > self.a[j] * _x[i][j]:
+                    min_x = self.a[j] * _x[i][j]
+                    min_index = j
+            self.resp_vector.append(min_index + 1)
+
     def _set_osp(self, y: np.ndarray):
         """
         Обобщенный критерий согласованности поведения.
@@ -158,7 +186,7 @@ class Result:
         Расчёт оценки ошибки аппроксимации.
         """
         self.e = 1 / len(_y) * reduce(
-            lambda x, y: x + y, list(map(lambda x, y: math.fabs((y - x) / y), self.yy, _y))) * 100
+            lambda x, y: x + y, list(map(lambda x, y: math.fabs(x / y), self.eps, _y))) * 100
 
     def _set_max_rows(self):
         self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
@@ -206,6 +234,12 @@ class Result:
             else:
                 line.append(None)
 
+            if self.mode == Mode.PIECEWISE_GIVEN:
+                if index < len(self.resp_vector):
+                    line.append(self.resp_vector[index])
+                else:
+                    line.append(None)
+
             if index == 0:
                 line.append(self.e)
             else:
@@ -249,21 +283,34 @@ class LpSolve:
     Задача линейного программирования.
     """
 
+    mode: Mode
     data: Data
     result: Result
     _vars: dict
     _problem: pulp.LpProblem
 
-    def __init__(self, data: Data):
+    def __init__(self, mode: Mode, data: Data):
+        self.mode = mode
         self.data = data
-        self.result = Result()
+        self.result = Result(mode)
         self._vars = {}
         self._problem = pulp.LpProblem('0', pulp.const.LpMinimize)
         self._create_variable_u_v()
         self._create_variable_l()
-        self._create_variable_beta_gamma()
+
+        if self.mode is Mode.MNM:
+            self._create_variable_beta_gamma()
+        elif self.mode is Mode.PIECEWISE_GIVEN:
+            self._create_variable_alfa()
+            self._create_variable_z()
+            self._create_variable_sigma()
+
         self._build_function_c()
-        self._build_restrictions()
+
+        if self.mode is Mode.MNM:
+            self._build_restrictions_for_mnm()
+        elif self.mode is Mode.PIECEWISE_GIVEN:
+            self._build_restrictions_for_mao()
 
         self._execute()
         self._set_result()
@@ -288,6 +335,22 @@ class LpSolve:
             self._vars.setdefault(var_name_beta, pulp.LpVariable(var_name_beta, lowBound=0))
             self._vars.setdefault(var_name_gamma, pulp.LpVariable(var_name_gamma, lowBound=0))
 
+    def _create_variable_z(self):
+        for index in range(self.data.y.size):
+            var_name = f'z{index}'
+            self._vars.setdefault(var_name, pulp.LpVariable(var_name, lowBound=0))
+
+    def _create_variable_sigma(self):
+        for k in range(self.data.x.size):
+            for i in range(len(self.data.x[0])):
+                var_name = f'sigma{k}{i}'
+                self._vars.setdefault(var_name, pulp.LpVariable(var_name, cat=pulp.const.LpBinary))
+
+    def _create_variable_alfa(self):
+        for i in range(self.data.x.size):
+            var_name = f'alfa{i}'
+            self._vars.setdefault(var_name, pulp.LpVariable(var_name))
+
     def _build_function_c(self):
         params = []
 
@@ -298,13 +361,15 @@ class LpSolve:
         for k in range(self.data.y.size - 1):
             for s in range(k + 1, self.data.y.size):
                 params.append((self._vars.get(f'l{k}{s}'), 1 - self.data.r))
-        for index in range(len(self.data.x[0])):
-            params.append((self._vars.get(f'b{index}'), self.data.delta))
-            params.append((self._vars.get(f'g{index}'), self.data.delta))
+
+        if self.mode is Mode.MNM:
+            for index in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index}'), self.data.delta))
+                params.append((self._vars.get(f'g{index}'), self.data.delta))
 
         self._problem += pulp.LpAffineExpression(params), 'Функция цели'
 
-    def _build_restrictions(self):
+    def _build_restrictions_for_mnm(self):
         index_restriction = 0
         for index in range(self.data.y.size):
             params = []
@@ -332,6 +397,50 @@ class LpSolve:
 
                 index_omega += 1
 
+    def _build_restrictions_for_mao(self):
+        index_restriction = 0
+        for i in range(self.data.y.size):
+            params = [(self._vars.get(f'z{i}'), 1), (self._vars.get(f'u{i}'), 1), (self._vars.get(f'v{i}'), -1)]
+            self._problem += pulp.LpAffineExpression(params) == self.data.y[i], str(index_restriction)
+
+            index_restriction += 1
+
+        for k in range(self.data.y.size):
+            for i in range(len(self.data.x[0])):
+                params = [(self._vars.get(f'alfa{i}'), self.data.x[k][i]),
+                          (self._vars.get(f'z{k}'), -1)]
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+
+                index_restriction += 1
+
+        for k in range(self.data.y.size):
+            for i in range(len(self.data.x[0])):
+                params = [(self._vars.get(f'alfa{i}'), self.data.x[k][i]),
+                          (self._vars.get(f'z{k}'), -1),
+                          (self._vars.get(f'sigma{k}{i}'), self.data.m)]
+                self._problem += pulp.LpAffineExpression(params) <= self.data.m, str(index_restriction)
+
+                index_restriction += 1
+
+        for k in range(self.data.y.size):
+            params = []
+            for i in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'sigma{k}{i}'), 1))
+            self._problem += pulp.LpAffineExpression(params) == 1, str(index_restriction)
+
+            index_restriction += 1
+
+        index_omega = 0
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params = [(self._vars.get(f'z{k}'), self.data.omega[index_omega]),
+                          (self._vars.get(f'z{s}'), -1 * self.data.omega[index_omega]),
+                          (self._vars.get(f'l{k}{s}'), 1)]
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+                index_omega += 1
+
+                index_restriction += 1
+
     def _execute(self):
         self._problem.solve()
 
@@ -341,6 +450,8 @@ class LpSolve:
         for var in self._problem.variables():
             if 'b' in var.name:
                 b.append(var.varValue)
+            elif 'alfa' in var.name:
+                self.result.a.append(var.varValue)
             elif 'g' in var.name:
                 g.append(var.varValue)
             elif 'l' in var.name:
