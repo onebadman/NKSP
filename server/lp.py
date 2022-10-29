@@ -92,6 +92,7 @@ class Result:
     count_rows: int
     N: float
     resp_vector: list
+    L: float
 
     def __init__(self, mode: Mode):
         self.mode = mode
@@ -114,6 +115,7 @@ class Result:
             result.osp = Result.get_value(data, 'osp')
             result.count_rows = Result.get_value(data, 'count_rows')
             result.N = Result.get_value(data, 'N')
+            result.L = Result.get_value(data, 'L')
 
         return result
 
@@ -123,10 +125,6 @@ class Result:
             return data[key]
         except KeyError:
             return None
-
-    @property
-    def sum_l(self) -> float:
-        return sum(self.l)
 
     @property
     def m(self) -> float:
@@ -148,6 +146,7 @@ class Result:
         self._set_max_rows()
         self._set_osp(_y)
         self._set_n(_y)
+        self._set_L()
 
         if self.mode == Mode.PIECEWISE_GIVEN:
             self.response_vector(_x)
@@ -188,6 +187,9 @@ class Result:
         self.e = 1 / len(_y) * reduce(
             lambda x, y: x + y, list(map(lambda x, y: math.fabs(x / y), self.eps, _y))) * 100
 
+    def _set_L(self):
+        self.L = sum(self.l)
+
     def _set_max_rows(self):
         self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
 
@@ -225,7 +227,7 @@ class Result:
                 line.append(None)
 
             if index == 0:
-                line.append(self.sum_l)
+                line.append(self.L)
             else:
                 line.append(None)
 
