@@ -1,5 +1,6 @@
 import json
 import math
+from typing import List, Any
 
 import numpy as np
 import pulp
@@ -469,6 +470,59 @@ class LpSolve:
             self.result.eps.append(u[index] - v[index])
 
         self.result.calculation(self.data.x, self.data.y)
+
+
+class Pod:
+    """
+    Подзадача LpIdealDot.
+    Хранит агрегированный результат решения задачи ЛП.
+    """
+
+    r: float
+    E: float
+    M: float
+    L: float
+    r_dot: float
+
+    def __init__(self, r, e, m, l_, r_dot):
+        self.r = r
+        self.E = e
+        self.M = m
+        self.L = l_
+        self.r_dot = r_dot
+
+    def __lt__(self, other):
+        return self.r < other.r
+
+    def __eq__(self, other):
+        return self.r == self.r
+
+    def __str__(self):
+        return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
+
+
+class IdealDotResult:
+    """
+    Результаты поиска идеальной точки.
+    Так же используется для хранения промежуточных результатов вычислений.
+    """
+
+    pods: List[Pod]
+
+    def __init__(self):
+        pass
+
+    def get_pod_by_max_r_dot(self) -> Pod | None:
+        """Возвращает Pod с максимальным значением r_dot."""
+        if not self.pods:
+            return None
+
+        pod = self.pods[0]
+        for i in range(len(self.pods)):
+            if pod.r_dot < self.pods[i].r_dot:
+                pod = self.pods[i]
+
+        return pod
 
 
 class LpIdealDot:
