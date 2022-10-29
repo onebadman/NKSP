@@ -14,6 +14,7 @@ class Mode(str, enum.Enum):
 
     MNM = 'MODE_MNM'
     PIECEWISE_GIVEN = 'MODE_PIECEWISE_GIVEN'
+    IDEAL_DOT = 'IDEAL_DOT'
 
     @staticmethod
     def build(value):
@@ -116,6 +117,9 @@ class MetaData:
 
     def set_mode(self, form):
         self.mode = Mode(self.get_value(form, 'mode') if self.get_value(form, 'mode') else Mode.MNM)
+
+        if self.mode == Mode.MNM and self.get_value(form, 'ideal_dot'):
+            self.mode = Mode.IDEAL_DOT
 
     @staticmethod
     def get_value(data, key):
