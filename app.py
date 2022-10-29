@@ -4,8 +4,8 @@ import os
 import pytz as pytz
 from flask import Flask, render_template, session, request, redirect, url_for, send_file, send_from_directory
 
-from server.lp import Data, LpSolve
-from server.meta_data import MenuTypes
+from server.lp import Data, LpSolve, LpIdealDot
+from server.meta_data import MenuTypes, Mode
 from server.session import Session
 from server.document import render_table
 from server.config import SECRET_FLASK, SPACE
@@ -166,7 +166,23 @@ def answer():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
 
+    if meta_data.mode is Mode.IDEAL_DOT:
+        return _ideal_dot_task(meta_data, _session)
+    else:
+        return _lp_task(meta_data, _session)
+
+
+def _lp_task(meta_data, _session):
     result = LpSolve(meta_data.mode, Data(meta_data)).result
+
+    _session.meta_data = meta_data
+    _session.result = result
+
+    return render_template('answer.html', meta_data=meta_data, result=result)
+
+
+def _ideal_dot_task(meta_data, _session):
+    result = LpIdealDot(Data(meta_data)).result
 
     _session.meta_data = meta_data
     _session.result = result
