@@ -535,6 +535,25 @@ class LpIdealDot:
         self.result = []
         self.data = data
 
+        self._calculation()
+
+    def _calculation(self):
+        self._first_iteration()
+        # todo найти максимальное значение r_dot, взять значение r справа и слева
+        self._second_iteration(0.2, 0.4)
+        # todo найти максимальное значение r_dot, взять результаты справа и слева
+
+    def _first_iteration(self):
+        for r in np.arange(0.1, 1.1, 0.1):
+            print(r)
+
+    def _second_iteration(self, r_left, r_right):
+        for r in np.arange(r_left + 0.01, r_right, 0.01):
+            print(r)
+
+
+if __name__ == '__main__':
+    lp = LpIdealDot(None)
 
 # 5  1 6
 # 7  7 8
