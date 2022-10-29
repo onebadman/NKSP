@@ -471,6 +471,17 @@ class LpSolve:
         self.result.calculation(self.data.x, self.data.y)
 
 
+class LpIdealDot:
+    """Задача поиска идеальной точки."""
+
+    result: []
+    data: Data
+
+    def __init__(self, data: Data):
+        self.result = []
+        self.data = data
+
+
 # 5  1 6
 # 7  7 8
 # 9  4 2
