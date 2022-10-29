@@ -47,14 +47,16 @@
                    {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
           </div>
         </div>
-        {% if meta_data.mode.value == 'MODE_MNM' %}
-          <div class="row mb-3">
+        {% if meta_data.mode != 'IDEAL_DOT' %}
+          <div id="div-r" class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
             <div class="col-sm-2">
               <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
                      {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
             </div>
           </div>
+        {% endif %}
+        {% if meta_data.mode.value in ['MODE_MNM', 'IDEAL_DOT'] %}
           <div class="row mb-3">
             <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина (δ)</label>
             <div class="col-sm-2">
@@ -72,13 +74,6 @@
           </div>
         {% endif %}
         {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
-          <div class="row mb-3">
-            <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
-            <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
-                     {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
-            </div>
-          </div>
           <div class="row mb-3">
             <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
             <div class="col-sm-2">
