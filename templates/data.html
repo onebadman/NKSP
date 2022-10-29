@@ -9,13 +9,23 @@
         <div class="row mb-3">
           <label class="col-sm-3 col-form-label">Выберете режим расчётов</label>
           <div class="col-sm-2">
-            <select class="form-select" style="min-width: max-content" aria-label="Default select example" name="mode">
+            <select class="form-select" style="min-width: max-content" aria-label="Default select example" name="mode"
+                    onchange="changeModeHandler(event)">
               <option {% if meta_data.mode.value == 'MODE_MNM' %} selected {% endif %} value="MODE_MNM">МНМ</option>
               <option {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} selected {% endif %}
                                                                               value="MODE_PIECEWISE_GIVEN">
                 Кусочно-заданная
               </option>
             </select>
+          </div>
+        </div>
+        <div id="ideal-dot" class="row mb-3" {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} hidden {% endif %}>
+          <label class="col-sm-3 col-form-label">Поиск идеальной точки</label>
+          <div class="col-sm-2">
+            <input class="form-check-input" type="checkbox" name="ideal_dot" style="min-width: max-content"
+                   id="gridCheck"
+                {% if meta_data.mode.value == 'IDEAL_DOT' %} checked {% endif %}
+            >
           </div>
         </div>
       </div>
@@ -54,7 +64,8 @@
           </div>
           <div class="col-12">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="free_chlen" style="min-width: max-content" id="gridCheck"
+              <input class="form-check-input" type="checkbox" name="free_chlen" style="min-width: max-content"
+                     id="gridCheck"
                   {% if meta_data.free_chlen %} checked {% endif %}>
               <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
             </div>
@@ -81,5 +92,16 @@
       <br>
       <button type="submit" class="btn btn-primary">Получить решение</button>
     </form>
+
+    <script>
+        function changeModeHandler(event) {
+            if (event.target.value === 'MODE_MNM')
+                document.getElementById('ideal-dot').hidden = false
+            if (event.target.value === 'MODE_PIECEWISE_GIVEN') {
+                document.getElementById('ideal-dot').hidden = true
+            }
+
+        }
+    </script>
   {% endif %}
 {% endblock %}
