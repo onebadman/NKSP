@@ -559,6 +559,33 @@ class LpIdealDot:
         for r in np.arange(r_left + 0.01, r_right, 0.01):
             print(r)
 
+    @staticmethod
+    def _find_index_ideal_dot(pods: List[Pod]) -> List[int]:
+        """Ищет индексы с идеальной точкой."""
+        ideal_indexes = []
+        ideal_index = 0
+        for i in range(len(pods)):
+            if pods[ideal_index].r_dot < pods[i].r_dot:
+                ideal_index = i
+
+        for i in range(len(pods)):
+            if pods[ideal_index].r_dot == pods[i].r_dot:
+                ideal_indexes.append(i)
+
+        return ideal_indexes
+
+    def _calculate_score(self) -> List[Pod]:
+        """Вычисляет оценки параметров и считает антиточку."""
+        pods = self.pre_result.pods
+        for i in range(len(pods)):
+            pods[i].E /= pods[0].E
+            pods[i].M /= pods[0].M
+            pods[i].L /= pods[len(pods) - 1]
+
+            pods[i].r_dot = (1 - pods[i].E) + (1 - pods[i].M) + (1 - pods[i].L)
+
+        return pods
+
 
 if __name__ == '__main__':
     lp = LpIdealDot(None)
