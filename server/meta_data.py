@@ -97,7 +97,7 @@ class MetaData:
         self.var_y = int(self.get_value(form, 'var_y')) if self.get_value(form, 'var_y') else 1
         self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1
 
-        if self.mode is Mode.MNM:
+        if self.mode in [Mode.MNM, Mode.IDEAL_DOT]:
             self.set_free_chlen(form)
             self.delta = float(self.get_value(form, 'delta')) if self.get_value(form, 'delta') else 0.1
         if self.mode is Mode.PIECEWISE_GIVEN:

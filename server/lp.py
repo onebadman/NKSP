@@ -7,6 +7,8 @@ import pulp
 
 from functools import reduce
 
+from pulp import PULP_CBC_CMD
+
 from server.meta_data import MetaData, Mode
 
 
@@ -445,7 +447,8 @@ class LpSolve:
                 index_restriction += 1
 
     def _execute(self):
-        self._problem.solve()
+        # PULP_CBC_CMD(msg=0) так библиотека в лог будет писать только ошибки.
+        self._problem.solve(PULP_CBC_CMD(msg=0))
 
     def _set_result(self):
         b, g, u, v = [], [], [], []
@@ -510,7 +513,7 @@ class IdealDotResult:
     pods: List[Pod]
 
     def __init__(self):
-        pass
+        self.pods = []
 
     def get_pod_by_max_r_dot(self) -> Pod | None:
         """Возвращает Pod с максимальным значением r_dot."""
@@ -529,10 +532,12 @@ class LpIdealDot:
     """Задача поиска идеальной точки."""
 
     result: []
+    pre_result: IdealDotResult
     data: Data
 
     def __init__(self, data: Data):
         self.result = []
+        self.pre_result = IdealDotResult()
         self.data = data
 
         self._calculation()
@@ -540,12 +545,15 @@ class LpIdealDot:
     def _calculation(self):
         self._first_iteration()
         # todo найти максимальное значение r_dot, взять значение r справа и слева
-        self._second_iteration(0.2, 0.4)
+        # self._second_iteration(0.2, 0.4)
         # todo найти максимальное значение r_dot, взять результаты справа и слева
 
     def _first_iteration(self):
         for r in np.arange(0.1, 1.1, 0.1):
-            print(r)
+            data = self.data
+            data.r = r
+            result = LpSolve(Mode.MNM, data).result
+            self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
 
     def _second_iteration(self, r_left, r_right):
         for r in np.arange(r_left + 0.01, r_right, 0.01):
