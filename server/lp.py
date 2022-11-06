@@ -544,8 +544,8 @@ class LpIdealDot:
 
     def _calculation(self):
         self._first_iteration()
-        # todo найти максимальное значение r_dot, взять значение r справа и слева
-        # self._second_iteration(0.2, 0.4)
+        interval = self._get_interval_for_second_iteration()
+        # self._second_iteration(interval[0], interval[1])
         # todo найти максимальное значение r_dot, взять результаты справа и слева
 
     def _first_iteration(self):
@@ -556,8 +556,24 @@ class LpIdealDot:
             self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
 
     def _second_iteration(self, r_left, r_right):
-        for r in np.arange(r_left + 0.01, r_right, 0.01):
-            print(r)
+        pass
+
+    def _get_interval_for_second_iteration(self) -> List[float]:
+        """Получает диапазон значений r для второй итерации вычислений."""
+        pods = self._calculate_score()
+        r_dot_indexes = self._find_index_ideal_dot(pods)
+        if len(r_dot_indexes) == 0:
+            return [0.01, 1.01]
+        if len(r_dot_indexes) == 1:
+            return [
+                self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
+                self.pre_result.pods[r_dot_indexes[0]].r + 0.09
+            ]
+
+        return [
+            self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
+            self.pre_result.pods[r_dot_indexes[len(r_dot_indexes) - 1]].r + 0.09
+        ]
 
     @staticmethod
     def _find_index_ideal_dot(pods: List[Pod]) -> List[int]:
@@ -572,17 +588,23 @@ class LpIdealDot:
             if pods[ideal_index].r_dot == pods[i].r_dot:
                 ideal_indexes.append(i)
 
+        print('ideal_indexes', ideal_indexes)
         return ideal_indexes
 
     def _calculate_score(self) -> List[Pod]:
         """Вычисляет оценки параметров и считает антиточку."""
         pods = self.pre_result.pods
+
+        print('i', 'E', 'M', 'L', 'r_dot')
+
         for i in range(len(pods)):
             pods[i].E /= pods[0].E
             pods[i].M /= pods[0].M
-            pods[i].L /= pods[len(pods) - 1]
+            pods[i].L /= pods[len(pods) - 1].L
 
             pods[i].r_dot = (1 - pods[i].E) + (1 - pods[i].M) + (1 - pods[i].L)
+
+            print(i, pods[i].E, pods[i].M, pods[i].L, pods[i].r_dot)
 
         return pods
 
