@@ -503,6 +503,9 @@ class Pod:
     def __str__(self):
         return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
 
+    def copy(self):
+        return Pod(self.r, self.E, self.M, self.L, self.r_dot)
+
 
 class IdealDotResult:
     """
@@ -527,6 +530,13 @@ class IdealDotResult:
 
         return pod
 
+    def copy(self) -> List[Pod]:
+        pods = []
+        for item in self.pods:
+            pods.append(item.copy())
+
+        return pods
+
 
 class LpIdealDot:
     """Задача поиска идеальной точки."""
@@ -545,8 +555,50 @@ class LpIdealDot:
     def _calculation(self):
         self._first_iteration()
         interval = self._get_interval_for_second_iteration()
+
         self._second_iteration(interval[0], interval[1])
-        # todo найти максимальное значение r_dot, взять результаты справа и слева
+
+        pods = self._get_result_pods()
+        print(pods)
+
+    def _get_result_pods(self) -> List[Pod]:
+        self.pre_result.pods.sort(key=lambda x: x.r)
+
+        pods = self._calculate_score()
+        ideal_r_dot = self._find_index_ideal_dot(pods)
+
+        res_pods = []
+
+        for i in range(len(pods)):
+            pods[i].r = float('{:.2f}'.format(pods[i].r))
+
+        for pod in pods:
+            if pod.r in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.90]:
+                if pod.r not in list(map(lambda item: item.r, res_pods)):
+                    res_pods.append(pod)
+
+        if len(ideal_r_dot) == 0:
+            pass
+        elif len(ideal_r_dot) == 1:
+            pod = pods[ideal_r_dot[0]]
+            if pod.r not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
+                res_pods.append(pod)
+                if ideal_r_dot[0] == 0:
+                    res_pods.append(pods[1])
+                    res_pods.append(pods[2])
+                elif ideal_r_dot[0] == len(pods) - 1:
+                    res_pods.append(pods[len(pods) - 2])
+                    res_pods.append(pods[len(pods) - 3])
+                else:
+                    if pods[ideal_r_dot[0] - 1].r not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
+                        res_pods.append(pods[ideal_r_dot[0] - 1])
+                    if pods[ideal_r_dot[0] + 1] not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
+                        res_pods.append(pods[ideal_r_dot[0] + 1])
+        else:
+            pass
+
+        res_pods.sort(key=lambda x: x.r)
+        return res_pods
 
     def _first_iteration(self):
         for r in np.arange(0.1, 1.1, 0.1):
@@ -597,9 +649,9 @@ class LpIdealDot:
 
     def _calculate_score(self) -> List[Pod]:
         """Вычисляет оценки параметров и считает антиточку."""
-        pods = self.pre_result.pods
+        pods = self.pre_result.copy()
 
-        print('i', 'E', 'M', 'L', 'r_dot')
+        print('i', 'r', 'E', 'M', 'L', 'r_dot')
 
         for i in range(len(pods)):
             pods[i].E /= pods[0].E
@@ -608,7 +660,7 @@ class LpIdealDot:
 
             pods[i].r_dot = (1 - pods[i].E) + (1 - pods[i].M) + (1 - pods[i].L)
 
-            print(i, pods[i].E, pods[i].M, pods[i].L, pods[i].r_dot)
+            print(i, pods[i].r, pods[i].E, pods[i].M, pods[i].L, pods[i].r_dot)
 
         return pods
 
