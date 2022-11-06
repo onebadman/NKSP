@@ -514,19 +514,21 @@ class IdealDotResult:
     """
 
     pods: List[Pod]
+    result: Result
+    pods_: List[Pod]
 
     def __init__(self):
         self.pods = []
 
     def get_pod_by_max_r_dot(self) -> Pod | None:
         """Возвращает Pod с максимальным значением r_dot."""
-        if not self.pods:
+        if not self.pods_:
             return None
 
-        pod = self.pods[0]
-        for i in range(len(self.pods)):
-            if pod.r_dot < self.pods[i].r_dot:
-                pod = self.pods[i]
+        pod = self.pods_[0]
+        for i in range(len(self.pods_)):
+            if pod.r_dot < self.pods_[i].r_dot:
+                pod = self.pods_[i]
 
         return pod
 
@@ -558,8 +560,10 @@ class LpIdealDot:
 
         self._second_iteration(interval[0], interval[1])
 
-        pods = self._get_result_pods()
-        print(pods)
+        self.pre_result.pods_ = self._get_result_pods()
+
+        self.data.r = self.pre_result.get_pod_by_max_r_dot().r
+        self.pre_result.result = LpSolve(Mode.MNM, self.data).result
 
     def _get_result_pods(self) -> List[Pod]:
         self.pre_result.pods.sort(key=lambda x: x.r)
