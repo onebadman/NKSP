@@ -545,7 +545,7 @@ class LpIdealDot:
     def _calculation(self):
         self._first_iteration()
         interval = self._get_interval_for_second_iteration()
-        # self._second_iteration(interval[0], interval[1])
+        self._second_iteration(interval[0], interval[1])
         # todo найти максимальное значение r_dot, взять результаты справа и слева
 
     def _first_iteration(self):
@@ -556,7 +556,11 @@ class LpIdealDot:
             self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
 
     def _second_iteration(self, r_left, r_right):
-        pass
+        for r in np.arange(r_left, r_right, 0.01):
+            data = self.data
+            data.r = r
+            result = LpSolve(Mode.MNM, data).result
+            self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
 
     def _get_interval_for_second_iteration(self) -> List[float]:
         """Получает диапазон значений r для второй итерации вычислений."""
@@ -567,12 +571,12 @@ class LpIdealDot:
         if len(r_dot_indexes) == 1:
             return [
                 self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
-                self.pre_result.pods[r_dot_indexes[0]].r + 0.09
+                self.pre_result.pods[r_dot_indexes[0]].r + 0.11
             ]
 
         return [
             self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
-            self.pre_result.pods[r_dot_indexes[len(r_dot_indexes) - 1]].r + 0.09
+            self.pre_result.pods[r_dot_indexes[len(r_dot_indexes) - 1]].r + 0.11
         ]
 
     @staticmethod
