@@ -565,6 +565,9 @@ class LpIdealDot:
 
         self.pre_result.pods_ = self._get_result_pods()
 
+        if not self.pre_result.pods_:
+            raise Exception("Все решения тривиальны!")
+
         self.data.r = self.pre_result.get_pod_by_max_r_dot().r
         self.pre_result.r = self.data.r
         self.pre_result.result = LpSolve(Mode.MNM, self.data).result
@@ -662,6 +665,7 @@ class LpIdealDot:
     def _calculate_score(self) -> List[Pod]:
         """Вычисляет оценки параметров и считает антиточку."""
         pods = self.pre_result.copy()
+        pods = self._del_pods_with_trivial_solution(pods)
 
         print('i', 'r', 'E', 'M', 'L', 'r_dot')
 
@@ -675,6 +679,17 @@ class LpIdealDot:
             print(i, pods[i].r, pods[i].E, pods[i].M, pods[i].L, pods[i].r_dot)
 
         return pods
+
+    @staticmethod
+    def _del_pods_with_trivial_solution(pods: List[Pod]) -> List[Pod]:
+        """Удаляет поды с тривиальным решением."""
+        result: List[Pod] = []
+
+        for pod in pods:
+            if pod.L != 0:
+                result.append(pod)
+
+        return result
 
 
 if __name__ == '__main__':
