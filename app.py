@@ -182,12 +182,13 @@ def _lp_task(meta_data, _session):
 
 
 def _ideal_dot_task(meta_data, _session):
-    result = LpIdealDot(Data(meta_data)).result
+    result = LpIdealDot(Data(meta_data)).pre_result
 
+    meta_data.r = result.r
     _session.meta_data = meta_data
-    _session.result = result
+    _session.result = result.result
 
-    return render_template('answer.html', meta_data=meta_data, result=result)
+    return render_template('answer.html', meta_data=meta_data, result=result.result, pods=result.pods_)
 
 
 @app.route('/form/data', methods=["POST"])
