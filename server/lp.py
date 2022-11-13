@@ -486,13 +486,15 @@ class Pod:
     M: float
     L: float
     r_dot: float
+    is_max: bool
 
-    def __init__(self, r, e, m, l_, r_dot):
+    def __init__(self, r, e, m, l_, r_dot, is_max=False):
         self.r = r
         self.E = e
         self.M = m
         self.L = l_
         self.r_dot = r_dot
+        self.is_max = is_max
 
     def __lt__(self, other):
         return self.r < other.r
@@ -504,7 +506,7 @@ class Pod:
         return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
 
     def copy(self):
-        return Pod(self.r, self.E, self.M, self.L, self.r_dot)
+        return Pod(self.r, self.E, self.M, self.L, self.r_dot, self.is_max)
 
 
 class IdealDotResult:
@@ -516,6 +518,7 @@ class IdealDotResult:
     pods: List[Pod]
     result: Result
     pods_: List[Pod]
+    r: float
 
     def __init__(self):
         self.pods = []
@@ -563,6 +566,7 @@ class LpIdealDot:
         self.pre_result.pods_ = self._get_result_pods()
 
         self.data.r = self.pre_result.get_pod_by_max_r_dot().r
+        self.pre_result.r = self.data.r
         self.pre_result.result = LpSolve(Mode.MNM, self.data).result
 
     def _get_result_pods(self) -> List[Pod]:
@@ -571,7 +575,7 @@ class LpIdealDot:
         pods = self._calculate_score()
         ideal_r_dot = self._find_index_ideal_dot(pods)
 
-        res_pods = []
+        res_pods: List[Pod] = []
 
         for i in range(len(pods)):
             pods[i].r = float('{:.2f}'.format(pods[i].r))
@@ -600,6 +604,10 @@ class LpIdealDot:
                         res_pods.append(pods[ideal_r_dot[0] + 1])
         else:
             pass
+
+        max_index = self._find_index_ideal_dot(res_pods)
+        for index in max_index:
+            res_pods[index].is_max = True
 
         res_pods.sort(key=lambda x: x.r)
         return res_pods
