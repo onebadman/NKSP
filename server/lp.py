@@ -558,93 +558,62 @@ class LpIdealDot:
         self._calculation()
 
     def _calculation(self):
-        self._first_iteration()
-        interval = self._get_interval_for_second_iteration()
+        r = self._find_non_trivial_solution()
 
-        self._second_iteration(interval[0], interval[1])
-
-        self.pre_result.pods_ = self._get_result_pods()
-
-        if not self.pre_result.pods_:
+        if not r:
             raise Exception("Все решения тривиальны!")
+
+        self._second_iteration(r)
+
+        self.get_result_pods()
 
         self.data.r = self.pre_result.get_pod_by_max_r_dot().r
         self.pre_result.r = self.data.r
         self.pre_result.result = LpSolve(Mode.MNM, self.data).result
 
-    def _get_result_pods(self) -> List[Pod]:
+    def get_result_pods(self):
         self.pre_result.pods.sort(key=lambda x: x.r)
 
         pods = self._calculate_score()
         ideal_r_dot = self._find_index_ideal_dot(pods)
 
-        res_pods: List[Pod] = []
-
         for i in range(len(pods)):
             pods[i].r = float('{:.2f}'.format(pods[i].r))
 
-        for pod in pods:
-            if pod.r in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.90]:
-                if pod.r not in list(map(lambda item: item.r, res_pods)):
-                    res_pods.append(pod)
+        result: List[Pod] = []
 
-        if len(ideal_r_dot) == 0:
-            pass
-        elif len(ideal_r_dot) == 1:
-            pod = pods[ideal_r_dot[0]]
-            if pod.r not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
-                res_pods.append(pod)
-                if ideal_r_dot[0] == 0:
-                    res_pods.append(pods[1])
-                    res_pods.append(pods[2])
-                elif ideal_r_dot[0] == len(pods) - 1:
-                    res_pods.append(pods[len(pods) - 2])
-                    res_pods.append(pods[len(pods) - 3])
-                else:
-                    if pods[ideal_r_dot[0] - 1].r not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
-                        res_pods.append(pods[ideal_r_dot[0] - 1])
-                    if pods[ideal_r_dot[0] + 1] not in [0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90]:
-                        res_pods.append(pods[ideal_r_dot[0] + 1])
-        else:
-            pass
+        added_indexes = []
+        for i in range(len(pods)):
+            if i in ideal_r_dot:
+                pods[i].is_max = True
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif i == 0:
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif i == len(pods) - 1:
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif pods[i].r in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+                result.append(pods[i])
+                added_indexes.append(i)
 
-        max_index = self._find_index_ideal_dot(res_pods)
-        for index in max_index:
-            res_pods[index].is_max = True
+        if ideal_r_dot[0] - 1 not in added_indexes:
+            result.append(pods[ideal_r_dot[0] - 1])
+            added_indexes.append(ideal_r_dot[0] - 1)
+        if ideal_r_dot[len(ideal_r_dot) - 1] + 1 not in added_indexes:
+            result.append(pods[ideal_r_dot[len(ideal_r_dot) - 1] + 1])
+            added_indexes.append(ideal_r_dot[len(ideal_r_dot) - 1] + 1)
 
-        res_pods.sort(key=lambda x: x.r)
-        return res_pods
+        result.sort(key=lambda x: x.r)
+        self.pre_result.pods_ = result
 
-    def _first_iteration(self):
-        for r in np.arange(0.1, 1.1, 0.1):
+    def _second_iteration(self, r_left):
+        for r in np.arange(r_left, 1.01, 0.01):
             data = self.data
             data.r = r
             result = LpSolve(Mode.MNM, data).result
             self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
-
-    def _second_iteration(self, r_left, r_right):
-        for r in np.arange(r_left, r_right, 0.01):
-            data = self.data
-            data.r = r
-            result = LpSolve(Mode.MNM, data).result
-            self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
-
-    def _get_interval_for_second_iteration(self) -> List[float]:
-        """Получает диапазон значений r для второй итерации вычислений."""
-        pods = self._calculate_score()
-        r_dot_indexes = self._find_index_ideal_dot(pods)
-        if len(r_dot_indexes) == 0:
-            return [0.01, 1.01]
-        if len(r_dot_indexes) == 1:
-            return [
-                self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
-                self.pre_result.pods[r_dot_indexes[0]].r + 0.11
-            ]
-
-        return [
-            self.pre_result.pods[r_dot_indexes[0]].r - 0.09,
-            self.pre_result.pods[r_dot_indexes[len(r_dot_indexes) - 1]].r + 0.11
-        ]
 
     @staticmethod
     def _find_index_ideal_dot(pods: List[Pod]) -> List[int]:
@@ -659,37 +628,34 @@ class LpIdealDot:
             if pods[ideal_index].r_dot == pods[i].r_dot:
                 ideal_indexes.append(i)
 
-        print('ideal_indexes', ideal_indexes)
         return ideal_indexes
 
     def _calculate_score(self) -> List[Pod]:
         """Вычисляет оценки параметров и считает антиточку."""
         pods = self.pre_result.copy()
-        pods = self._del_pods_with_trivial_solution(pods)
 
-        print('i', 'r', 'E', 'M', 'L', 'r_dot')
+        divider_E = pods[0].E
+        divider_M = pods[0].M
+        divider_L = pods[len(pods) - 1].L
 
         for i in range(len(pods)):
-            pods[i].E /= pods[0].E
-            pods[i].M /= pods[0].M
-            pods[i].L /= pods[len(pods) - 1].L
+            pods[i].E /= divider_E
+            pods[i].M /= divider_M
+            pods[i].L /= divider_L
 
             pods[i].r_dot = (1 - pods[i].E) + (1 - pods[i].M) + (1 - pods[i].L)
 
-            print(i, pods[i].r, pods[i].E, pods[i].M, pods[i].L, pods[i].r_dot)
-
         return pods
 
-    @staticmethod
-    def _del_pods_with_trivial_solution(pods: List[Pod]) -> List[Pod]:
-        """Удаляет поды с тривиальным решением."""
-        result: List[Pod] = []
+    def _find_non_trivial_solution(self) -> float:
+        """Ищет не тривиальное решение."""
 
-        for pod in pods:
-            if pod.L != 0:
-                result.append(pod)
-
-        return result
+        for r in np.arange(0.01, 1, 0.01):
+            data = self.data
+            data.r = r
+            result = LpSolve(Mode.MNM, data).result
+            if result.L != 0:
+                return r
 
 
 if __name__ == '__main__':
