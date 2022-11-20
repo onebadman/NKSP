@@ -598,18 +598,24 @@ class LpIdealDot:
                 result.append(pods[i])
                 added_indexes.append(i)
 
-        if ideal_r_dot[0] - 1 not in added_indexes:
+        if ideal_r_dot[0] - 1 not in added_indexes and ideal_r_dot[0] - 1 >= 0:
             result.append(pods[ideal_r_dot[0] - 1])
             added_indexes.append(ideal_r_dot[0] - 1)
-        if ideal_r_dot[len(ideal_r_dot) - 1] + 1 not in added_indexes:
+        if len(ideal_r_dot) > 1 and ideal_r_dot[len(ideal_r_dot) - 1] + 1 not in added_indexes \
+                and 0 <= ideal_r_dot[0] + 1 < len(pods):
             result.append(pods[ideal_r_dot[len(ideal_r_dot) - 1] + 1])
             added_indexes.append(ideal_r_dot[len(ideal_r_dot) - 1] + 1)
+        elif ideal_r_dot[0] + 1 not in added_indexes and 0 <= ideal_r_dot[0] + 1 < len(pods):
+            result.append(pods[ideal_r_dot[0] + 1])
+            added_indexes.append(ideal_r_dot[0] + 1)
 
         result.sort(key=lambda x: x.r)
         self.pre_result.pods_ = result
 
     def _second_iteration(self, r_left):
         for r in np.arange(r_left, 1.01, 0.01):
+            if float('{:.2f}'.format(r)) == 1.01:
+                continue
             data = self.data
             data.r = r
             result = LpSolve(Mode.MNM, data).result
