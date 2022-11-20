@@ -634,9 +634,9 @@ class LpIdealDot:
         """Вычисляет оценки параметров и считает антиточку."""
         pods = self.pre_result.copy()
 
-        divider_E = pods[0].E
-        divider_M = pods[0].M
-        divider_L = pods[len(pods) - 1].L
+        divider_E = max(list(map(lambda item: item.E, pods)))
+        divider_M = max(list(map(lambda item: item.M, pods)))
+        divider_L = max(list(map(lambda item: item.L, pods)))
 
         for i in range(len(pods)):
             pods[i].E /= divider_E
