@@ -56,10 +56,58 @@
       {% endfor %}
       </tbody>
     </table>
-    <br>
-    <form name="loadResult" action="/form/load_result" method="post">
-      <button type="submit" class="btn btn-primary">Скачать результаты решения</button>
-    </form>
   </div>
+  <br>
+  <form name="loadResult" action="/form/load_result" method="post">
+    <button type="submit" class="btn btn-primary">Скачать результаты решения</button>
+  </form>
+
+  {% if meta_data.mode.value == 'IDEAL_DOT' %}
+{#    <br>#}
+{#    <div class="table-responsive">#}
+{#      <table class="table table-sm table-striped table-bordered">#}
+{#        <thead> <!-- Column names -->#}
+{#        <tr>#}
+{#          <th scope="col">r</th>#}
+{#          <th scope="col">E</th>#}
+{#          <th scope="col">M</th>#}
+{#          <th scope="col">L</th>#}
+{#        </tr>#}
+{#        </thead>#}
+{#        <tbody> <!-- Data -->#}
+{#        {% for pod in pods %}#}
+{#          <tr>#}
+{#            <td>{{ pod.r }}</td>#}
+{#            <td>{{ pod.E }}</td>#}
+{#            <td>{{ pod.M }}</td>#}
+{#            <td>{{ pod.L }}</td>#}
+{#          </tr>#}
+{#        {% endfor %}#}
+{#        </tbody>#}
+{#      </table>#}
+{#    </div>#}
+
+    <br>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped table-bordered">
+        <thead> <!-- Column names -->
+        <tr>
+          <th scope="col">r</th>
+          <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody> <!-- Data -->
+        {% for pod in pods %}
+          <tr {% if pod.is_max %}
+            style="background-color: goldenrod"
+          {% endif %} >
+            <td>{{ pod.r }}</td>
+            <td>{{ pod.r_dot }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
 
 {% endblock %}

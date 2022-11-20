@@ -1,10 +1,13 @@
 import json
 import math
+from typing import List, Any
 
 import numpy as np
 import pulp
 
 from functools import reduce
+
+from pulp import PULP_CBC_CMD
 
 from server.meta_data import MetaData, Mode
 
@@ -92,6 +95,7 @@ class Result:
     count_rows: int
     N: float
     resp_vector: list
+    L: float
 
     def __init__(self, mode: Mode):
         self.mode = mode
@@ -114,6 +118,7 @@ class Result:
             result.osp = Result.get_value(data, 'osp')
             result.count_rows = Result.get_value(data, 'count_rows')
             result.N = Result.get_value(data, 'N')
+            result.L = Result.get_value(data, 'L')
 
         return result
 
@@ -123,10 +128,6 @@ class Result:
             return data[key]
         except KeyError:
             return None
-
-    @property
-    def sum_l(self) -> float:
-        return sum(self.l)
 
     @property
     def m(self) -> float:
@@ -148,6 +149,7 @@ class Result:
         self._set_max_rows()
         self._set_osp(_y)
         self._set_n(_y)
+        self._set_L()
 
         if self.mode == Mode.PIECEWISE_GIVEN:
             self.response_vector(_x)
@@ -188,6 +190,9 @@ class Result:
         self.e = 1 / len(_y) * reduce(
             lambda x, y: x + y, list(map(lambda x, y: math.fabs(x / y), self.eps, _y))) * 100
 
+    def _set_L(self):
+        self.L = sum(self.l)
+
     def _set_max_rows(self):
         self.count_rows = max(len(self.l), len(self.a), len(self.yy), len(self.eps))
 
@@ -225,7 +230,7 @@ class Result:
                 line.append(None)
 
             if index == 0:
-                line.append(self.sum_l)
+                line.append(self.L)
             else:
                 line.append(None)
 
@@ -442,7 +447,8 @@ class LpSolve:
                 index_restriction += 1
 
     def _execute(self):
-        self._problem.solve()
+        # PULP_CBC_CMD(msg=0) так библиотека в лог будет писать только ошибки.
+        self._problem.solve(PULP_CBC_CMD(msg=0))
 
     def _set_result(self):
         b, g, u, v = [], [], [], []
@@ -468,6 +474,198 @@ class LpSolve:
 
         self.result.calculation(self.data.x, self.data.y)
 
+
+class Pod:
+    """
+    Подзадача LpIdealDot.
+    Хранит агрегированный результат решения задачи ЛП.
+    """
+
+    r: float
+    E: float
+    M: float
+    L: float
+    r_dot: float
+    is_max: bool
+
+    def __init__(self, r, e, m, l_, r_dot, is_max=False):
+        self.r = r
+        self.E = e
+        self.M = m
+        self.L = l_
+        self.r_dot = r_dot
+        self.is_max = is_max
+
+    def __lt__(self, other):
+        return self.r < other.r
+
+    def __eq__(self, other):
+        return self.r == self.r
+
+    def __str__(self):
+        return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
+
+    def copy(self):
+        return Pod(self.r, self.E, self.M, self.L, self.r_dot, self.is_max)
+
+
+class IdealDotResult:
+    """
+    Результаты поиска идеальной точки.
+    Так же используется для хранения промежуточных результатов вычислений.
+    """
+
+    pods: List[Pod]
+    result: Result
+    pods_: List[Pod]
+    r: float
+
+    def __init__(self):
+        self.pods = []
+
+    def get_pod_by_max_r_dot(self) -> Pod | None:
+        """Возвращает Pod с максимальным значением r_dot."""
+        if not self.pods_:
+            return None
+
+        pod = self.pods_[0]
+        for i in range(len(self.pods_)):
+            if pod.r_dot < self.pods_[i].r_dot:
+                pod = self.pods_[i]
+
+        return pod
+
+    def copy(self) -> List[Pod]:
+        pods = []
+        for item in self.pods:
+            pods.append(item.copy())
+
+        return pods
+
+
+class LpIdealDot:
+    """Задача поиска идеальной точки."""
+
+    result: []
+    pre_result: IdealDotResult
+    data: Data
+
+    def __init__(self, data: Data):
+        self.result = []
+        self.pre_result = IdealDotResult()
+        self.data = data
+
+        self._calculation()
+
+    def _calculation(self):
+        r = self._find_non_trivial_solution()
+
+        if not r:
+            raise Exception("Все решения тривиальны!")
+
+        self._second_iteration(r)
+
+        self.get_result_pods()
+
+        self.data.r = self.pre_result.get_pod_by_max_r_dot().r
+        self.pre_result.r = self.data.r
+        self.pre_result.result = LpSolve(Mode.MNM, self.data).result
+
+    def get_result_pods(self):
+        self.pre_result.pods.sort(key=lambda x: x.r)
+
+        pods = self._calculate_score()
+        ideal_r_dot = self._find_index_ideal_dot(pods)
+
+        for i in range(len(pods)):
+            pods[i].r = float('{:.2f}'.format(pods[i].r))
+
+        result: List[Pod] = []
+
+        added_indexes = []
+        for i in range(len(pods)):
+            if i in ideal_r_dot:
+                pods[i].is_max = True
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif i == 0:
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif i == len(pods) - 1:
+                result.append(pods[i])
+                added_indexes.append(i)
+            elif pods[i].r in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+                result.append(pods[i])
+                added_indexes.append(i)
+
+        if ideal_r_dot[0] - 1 not in added_indexes and ideal_r_dot[0] - 1 >= 0:
+            result.append(pods[ideal_r_dot[0] - 1])
+            added_indexes.append(ideal_r_dot[0] - 1)
+        if len(ideal_r_dot) > 1 and ideal_r_dot[len(ideal_r_dot) - 1] + 1 not in added_indexes \
+                and 0 <= ideal_r_dot[0] + 1 < len(pods):
+            result.append(pods[ideal_r_dot[len(ideal_r_dot) - 1] + 1])
+            added_indexes.append(ideal_r_dot[len(ideal_r_dot) - 1] + 1)
+        elif ideal_r_dot[0] + 1 not in added_indexes and 0 <= ideal_r_dot[0] + 1 < len(pods):
+            result.append(pods[ideal_r_dot[0] + 1])
+            added_indexes.append(ideal_r_dot[0] + 1)
+
+        result.sort(key=lambda x: x.r)
+        self.pre_result.pods_ = result
+
+    def _second_iteration(self, r_left):
+        for r in np.arange(r_left, 1.01, 0.01):
+            if float('{:.2f}'.format(r)) == 1.01:
+                continue
+            data = self.data
+            data.r = r
+            result = LpSolve(Mode.MNM, data).result
+            self.pre_result.pods.append(Pod(r, result.e, result.m, result.L, None))
+
+    @staticmethod
+    def _find_index_ideal_dot(pods: List[Pod]) -> List[int]:
+        """Ищет индексы с идеальной точкой."""
+        ideal_indexes = []
+        ideal_index = 0
+        for i in range(len(pods)):
+            if pods[ideal_index].r_dot < pods[i].r_dot:
+                ideal_index = i
+
+        for i in range(len(pods)):
+            if pods[ideal_index].r_dot == pods[i].r_dot:
+                ideal_indexes.append(i)
+
+        return ideal_indexes
+
+    def _calculate_score(self) -> List[Pod]:
+        """Вычисляет оценки параметров и считает антиточку."""
+        pods = self.pre_result.copy()
+
+        divider_E = max(list(map(lambda item: item.E, pods)))
+        divider_M = max(list(map(lambda item: item.M, pods)))
+        divider_L = max(list(map(lambda item: item.L, pods)))
+
+        for i in range(len(pods)):
+            pods[i].E /= divider_E
+            pods[i].M /= divider_M
+            pods[i].L /= divider_L
+
+            pods[i].r_dot = (1 - pods[i].E) + (1 - pods[i].M) + (1 - pods[i].L)
+
+        return pods
+
+    def _find_non_trivial_solution(self) -> float:
+        """Ищет не тривиальное решение."""
+
+        for r in np.arange(0.01, 1, 0.01):
+            data = self.data
+            data.r = r
+            result = LpSolve(Mode.MNM, data).result
+            if result.L != 0:
+                return r
+
+
+if __name__ == '__main__':
+    lp = LpIdealDot(None)
 
 # 5  1 6
 # 7  7 8
