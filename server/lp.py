@@ -469,8 +469,14 @@ class LpSolve:
 
         for index in range(len(b)):
             self.result.a.append(b[index] - g[index])
-        for index in range(len(u)):
-            self.result.eps.append(u[index] - v[index])
+
+        if self.mode == Mode.PIECEWISE_GIVEN:
+            for i in range(len(self.data.y)):
+                self.result.eps.append(
+                    self.data.y[i] - min(list(map(lambda a, x: a * x, self.result.a, self.data.x[i]))))
+        else:
+            for index in range(len(u)):
+                self.result.eps.append(u[index] - v[index])
 
         self.result.calculation(self.data.x, self.data.y)
 
