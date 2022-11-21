@@ -108,7 +108,7 @@ class Result:
 
     @staticmethod
     def new_result(data=None):
-        result = Result()
+        result = Result(Mode.build(Result.get_value(data, 'mode')))
         if data is not None:
             result.a = Result.get_value(data, 'a')
             result.eps = Result.get_value(data, 'eps')
@@ -119,6 +119,7 @@ class Result:
             result.count_rows = Result.get_value(data, 'count_rows')
             result.N = Result.get_value(data, 'N')
             result.L = Result.get_value(data, 'L')
+            result.resp_vector = Result.get_value(data, 'resp_vector')
 
         return result
 
