@@ -1,5 +1,6 @@
 import datetime
 import json
+import pickle
 
 import jwt
 import redis
@@ -55,8 +56,8 @@ class Session:
     @property
     def meta_data(self) -> MetaData:
         r = Session._get_redis()
-        if r.get(self.token.body) != "" and 'meta_data' in json.loads(r.get(self.token.body)):
-            self._meta_data = MetaData(json.loads(r.get(self.token.body))['meta_data'])
+        if r.get(f'{self.token.body}_meta_data'):
+            self._meta_data = pickle.loads(r.get(f'{self.token.body}_meta_data'))
         else:
             self._meta_data = MetaData()
 
@@ -71,8 +72,8 @@ class Session:
     @property
     def result(self) -> Result:
         r = Session._get_redis()
-        if r.get(self.token.body) != "" and 'result' in json.loads(r.get(self.token.body)):
-            self._result = Result.new_result(json.loads(r.get(self.token.body))['result'])
+        if r.get(f'{self.token.body}_result'):
+            self._result = pickle.loads(r.get(f'{self.token.body}_result'))
         else:
             self._result = Result.new_result()
 
@@ -112,16 +113,19 @@ class Session:
 
     def save(self):
         r = Session._get_redis()
-        r.set(self.token.body, f'{{"meta_data":{json.dumps(self._meta_data, cls=MetaData.DataEncoder)},'
-                               f'"result":{json.dumps(self._result, cls=Result.DataEncoder)}}}')
+        r.set(f'{self.token.body}_meta_data', pickle.dumps(self._meta_data))
+        r.set(f'{self.token.body}_result', pickle.dumps(self._result))
         r.expireat(
-            self.token.body,
+            f'{self.token.body}_meta_data',
+            datetime.datetime.fromisoformat(f'{datetime.date.today() + datetime.timedelta(days=1)} 04:00:00'))
+        r.expireat(
+            f'{self.token.body}_result',
             datetime.datetime.fromisoformat(f'{datetime.date.today() + datetime.timedelta(days=1)} 04:00:00'))
         r.close()
 
     @staticmethod
     def _get_redis() -> redis.Redis:
-        return redis.Redis(decode_responses=True, host=REDIS_HOST, port=REDIS_PORT)
+        return redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
     class DataEncoder(json.JSONEncoder):
         """

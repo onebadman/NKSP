@@ -213,7 +213,7 @@ def form_load_result():
     save_session(_session)
 
     result = _session.result
-    file_stream = render_table(_session.meta_data.mode, result.print())
+    file_stream = render_table(_session.meta_data.mode, result.print(), result.pods)
 
     return send_file(
         file_stream,
