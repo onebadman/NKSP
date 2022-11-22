@@ -7,3 +7,5 @@ REDIS_HOST = os.environ.get('REDIS_HOST') if os.environ.get('SECRET_FLASK') is n
 REDIS_PORT = os.environ.get("REDIS_PORT") if os.environ.get('SECRET_FLASK') is not None else '6379'
 
 SPACE = os.environ.get("SPACE") if os.environ.get('SECRET_FLASK') is not None else 'dev'
+
+BASE_DIR = os.environ.get('BASE_DIR') if os.environ.get('BASE_DIR') is not None else 'resources'
