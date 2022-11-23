@@ -83,6 +83,40 @@ class Data:
         self.omega = np.array(omega)
 
 
+class Pod:
+    """
+    Подзадача LpIdealDot.
+    Хранит агрегированный результат решения задачи ЛП.
+    """
+
+    r: float
+    E: float
+    M: float
+    L: float
+    r_dot: float
+    is_max: bool
+
+    def __init__(self, r, e, m, l_, r_dot, is_max=False):
+        self.r = r
+        self.E = e
+        self.M = m
+        self.L = l_
+        self.r_dot = r_dot
+        self.is_max = is_max
+
+    def __lt__(self, other):
+        return self.r < other.r
+
+    def __eq__(self, other):
+        return self.r == self.r
+
+    def __str__(self):
+        return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
+
+    def copy(self):
+        return Pod(self.r, self.E, self.M, self.L, self.r_dot, self.is_max)
+
+
 class Result:
     mode: Mode
 
@@ -95,7 +129,8 @@ class Result:
     count_rows: int
     N: float
     resp_vector: list
-    L: float
+
+    pods: List[Pod]
 
     def __init__(self, mode: Mode):
         self.mode = mode
@@ -105,6 +140,7 @@ class Result:
         self.l = []
         self.yy = []
         self.resp_vector = []
+        self.pods = []
 
     @staticmethod
     def new_result(data=None):
@@ -120,6 +156,7 @@ class Result:
             result.N = Result.get_value(data, 'N')
             result.L = Result.get_value(data, 'L')
             result.resp_vector = Result.get_value(data, 'resp_vector')
+            result.resp_vector = Result.get_value(data, 'pods')
 
         return result
 
@@ -482,40 +519,6 @@ class LpSolve:
         self.result.calculation(self.data.x, self.data.y)
 
 
-class Pod:
-    """
-    Подзадача LpIdealDot.
-    Хранит агрегированный результат решения задачи ЛП.
-    """
-
-    r: float
-    E: float
-    M: float
-    L: float
-    r_dot: float
-    is_max: bool
-
-    def __init__(self, r, e, m, l_, r_dot, is_max=False):
-        self.r = r
-        self.E = e
-        self.M = m
-        self.L = l_
-        self.r_dot = r_dot
-        self.is_max = is_max
-
-    def __lt__(self, other):
-        return self.r < other.r
-
-    def __eq__(self, other):
-        return self.r == self.r
-
-    def __str__(self):
-        return f'r: {self.r}, E: {self.E}, M: {self.M}, L: {self.L}, r_dot: {self.r_dot}'
-
-    def copy(self):
-        return Pod(self.r, self.E, self.M, self.L, self.r_dot, self.is_max)
-
-
 class IdealDotResult:
     """
     Результаты поиска идеальной точки.
@@ -577,6 +580,7 @@ class LpIdealDot:
         self.data.r = self.pre_result.get_pod_by_max_r_dot().r
         self.pre_result.r = self.data.r
         self.pre_result.result = LpSolve(Mode.MNM, self.data).result
+        self.pre_result.result.pods = self.pre_result.pods_
 
     def get_result_pods(self):
         self.pre_result.pods.sort(key=lambda x: x.r)

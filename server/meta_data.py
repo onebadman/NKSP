@@ -45,6 +45,7 @@ class MetaData:
     m: int  # Большое положительное число.
 
     def __init__(self, data=None):
+        self.mode = Mode.MNM
         if data is not None:
             self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
             self.menu_active_load = MetaData.get_value(data, 'menu_active_load')
