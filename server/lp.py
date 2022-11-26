@@ -361,6 +361,8 @@ class LpSolve:
             self._build_restrictions_for_mnm()
         elif self.mode is Mode.PIECEWISE_GIVEN:
             self._build_restrictions_for_mao()
+        elif self.mode is Mode.HMMCAO:
+            self._build_restrictions_for_hmmcao()
 
         self._execute()
         self._set_result()
@@ -493,6 +495,40 @@ class LpSolve:
                 index_omega += 1
 
                 index_restriction += 1
+
+    def _build_restrictions_for_hmmcao(self):
+        index_restriction = 0
+
+        for index in range(self.data.y.size):
+            params = []
+            for index_x in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index_x}'), self.data.x[index][index_x]))
+                params.append((self._vars.get(f'g{index_x}'), -1 * self.data.x[index][index_x]))
+            params.append((self._vars.get(f'u{index}'), 1))
+            params.append((self._vars.get(f'v{index}'), -1))
+
+            self._problem += pulp.LpAffineExpression(params) == self.data.y[index], str(index_restriction)
+            index_restriction += 1
+
+        index_omega = 0
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params = []
+                for index in range(len(self.data.x[0])):
+                    x = self.data.x[k][index] - self.data.x[s][index]
+                    params.append((self._vars.get(f'b{index}'), x * self.data.omega[index_omega]))
+                    params.append((self._vars.get(f'g{index}'), -1 * x * self.data.omega[index_omega]))
+                params.append((self._vars.get(f'l{k}{s}'), 1))
+
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+                index_restriction += 1
+
+                index_omega += 1
+
+        for index in range(self.data.y.size):
+            params = [(self._vars.get(f'u{index}'), 1), (self._vars.get(f'v{index}'), 1), (self._vars.get(f'p'), -1)]
+            self._problem += pulp.LpAffineExpression(params) <= 0, str(index_restriction)
+            index_restriction += 1
 
     def _execute(self):
         # PULP_CBC_CMD(msg=0) так библиотека в лог будет писать только ошибки.
