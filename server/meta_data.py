@@ -15,6 +15,7 @@ class Mode(str, enum.Enum):
     MNM = 'MODE_MNM'
     PIECEWISE_GIVEN = 'MODE_PIECEWISE_GIVEN'
     IDEAL_DOT = 'IDEAL_DOT'
+    HMMCAO = 'HMMCAO'
 
     @staticmethod
     def build(value):

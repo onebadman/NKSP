@@ -16,10 +16,13 @@
                                                                               value="MODE_PIECEWISE_GIVEN">
                 Кусочно-заданная
               </option>
+              <option {% if meta_data.mode.value == 'HMMCAO' %} selected {% endif %} value="HMMCAO">
+                HMMCAO
+              </option>
             </select>
           </div>
         </div>
-        <div id="ideal-dot" class="row mb-3" {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} hidden {% endif %}>
+        <div id="ideal-dot" class="row mb-3" {% if meta_data.mode.value not in ['MODE_MNM', 'IDEAL_DOT'] %} hidden {% endif %}>
           <label class="col-sm-3 col-form-label">Поиск идеальной точки</label>
           <div class="col-sm-2">
             <input class="form-check-input" type="checkbox" name="ideal_dot" style="min-width: max-content"
