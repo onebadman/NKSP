@@ -22,10 +22,14 @@ class Data:
     r: float
     m: int
     delta: float
+    delta_1: float
+    delta_2: float
     omega: np.ndarray
 
     def __init__(self, meta_data: MetaData):
         self.delta = meta_data.delta
+        self.delta_1 = meta_data.delta_1
+        self.delta_2 = meta_data.delta_2
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
@@ -347,6 +351,9 @@ class LpSolve:
             self._create_variable_alfa()
             self._create_variable_z()
             self._create_variable_sigma()
+        elif self.mode is Mode.HMMCAO:
+            self._create_variable_beta_gamma()
+            self._create_variable_p()
 
         self._build_function_c()
 
@@ -393,6 +400,9 @@ class LpSolve:
         for i in range(self.data.x.size):
             var_name = f'alfa{i}'
             self._vars.setdefault(var_name, pulp.LpVariable(var_name))
+
+    def _create_variable_p(self):
+        self._vars.setdefault('p', pulp.LpVariable('p'))
 
     def _build_function_c(self):
         params = []
