@@ -28,7 +28,7 @@ def render_table_dot(data: list, pods: List[Pod]):
     template = DocxTemplate(path)
 
     context = {
-        'headers': ['α', 'lks', '∑lks', 'ε', 'E', 'КСП', 'M', 'Ñ'],
+        'headers': ['α', 'lks', 'L (∑lks)', 'ε', 'E', 'КСП', 'M', 'Ñ'],
         'data': data,
         'headers_dot': ['r', ''],
         'data_dot': data_dot
@@ -56,9 +56,9 @@ def render_table(mode: Mode, data: list, pods: List[Pod]):
 
     headers = []
     if mode == Mode.MNM:
-        headers = ['α', 'lks', '∑lks', 'ε', 'E', 'КСП', 'M', 'Ñ']
+        headers = ['α', 'lks', 'L (∑lks)', 'ε', 'E', 'КСП', 'M', 'Ñ']
     elif mode == Mode.PIECEWISE_GIVEN:
-        headers = ['α', 'lks', '∑lks', 'ε', 'Вектор срабатываний', 'E', 'КСП', 'M', 'Ñ']
+        headers = ['α', 'lks', 'L (∑lks)', 'ε', 'Вектор срабатываний', 'E', 'КСП', 'M', 'Ñ']
     else:
         raise Exception("Для используемого метода нет подходящего шаблона!")
 
