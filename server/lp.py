@@ -409,10 +409,12 @@ class LpSolve:
     def _build_function_c(self):
         params = []
 
-        for index in range(self.data.y.size):
-            params.append((self._vars.get(f'u{index}'), self.data.r))
-        for index in range(self.data.y.size):
-            params.append((self._vars.get(f'v{index}'), self.data.r))
+        if self.mode is not Mode.HMMCAO:
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'u{index}'), self.data.r))
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'v{index}'), self.data.r))
+
         for k in range(self.data.y.size - 1):
             for s in range(k + 1, self.data.y.size):
                 params.append((self._vars.get(f'l{k}{s}'), 1 - self.data.r))
@@ -421,6 +423,17 @@ class LpSolve:
             for index in range(len(self.data.x[0])):
                 params.append((self._vars.get(f'b{index}'), self.data.delta))
                 params.append((self._vars.get(f'g{index}'), self.data.delta))
+
+        if self.mode is Mode.HMMCAO:
+            params.append((self._vars.get('p'), self.data.r))
+
+            for index in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index}'), self.data.delta_1))
+                params.append((self._vars.get(f'g{index}'), self.data.delta_1))
+
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'u{index}'), self.data.delta_2))
+                params.append((self._vars.get(f'v{index}'), self.data.delta_2))
 
         self._problem += pulp.LpAffineExpression(params), 'Функция цели'
 
