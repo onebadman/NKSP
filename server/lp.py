@@ -27,9 +27,9 @@ class Data:
     omega: np.ndarray
 
     def __init__(self, meta_data: MetaData):
-        self.delta = meta_data.delta
-        self.delta_1 = meta_data.delta_1
-        self.delta_2 = meta_data.delta_2
+        self.delta = meta_data.delta if 'delta' in dir(meta_data) else None
+        self.delta_1 = meta_data.delta_1 if 'delta_1' in dir(meta_data) else None
+        self.delta_2 = meta_data.delta_2 if 'delta_2' in dir(meta_data) else None
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
