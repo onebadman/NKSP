@@ -133,6 +133,7 @@ class Result:
     count_rows: int
     N: float
     resp_vector: list
+    p: float
 
     pods: List[Pod]
 
@@ -304,6 +305,11 @@ class Result:
 
             if index == 0:
                 line.append(self.N)
+            else:
+                line.append(None)
+
+            if index == 0 and self.mode is Mode.HMMCAO:
+                line.append(self.p)
             else:
                 line.append(None)
 
@@ -563,6 +569,8 @@ class LpSolve:
                 u.append(var.varValue)
             elif 'v' in var.name:
                 v.append(var.varValue)
+            elif 'p' in var.name:
+                self.result.p = var.varValue
 
         for index in range(len(b)):
             self.result.a.append(b[index] - g[index])
