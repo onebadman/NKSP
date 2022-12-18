@@ -22,10 +22,14 @@ class Data:
     r: float
     m: int
     delta: float
+    delta_1: float
+    delta_2: float
     omega: np.ndarray
 
     def __init__(self, meta_data: MetaData):
-        self.delta = meta_data.delta
+        self.delta = meta_data.delta if 'delta' in dir(meta_data) else None
+        self.delta_1 = meta_data.delta_1 if 'delta_1' in dir(meta_data) else None
+        self.delta_2 = meta_data.delta_2 if 'delta_2' in dir(meta_data) else None
         self.r = meta_data.r
         self._set_y(meta_data)
         self._set_x(meta_data)
@@ -129,6 +133,7 @@ class Result:
     count_rows: int
     N: float
     resp_vector: list
+    p: float
 
     pods: List[Pod]
 
@@ -303,6 +308,11 @@ class Result:
             else:
                 line.append(None)
 
+            if index == 0 and self.mode is Mode.HMMCAO:
+                line.append(self.p)
+            else:
+                line.append(None)
+
             arr.append(line)
         return arr
 
@@ -347,6 +357,9 @@ class LpSolve:
             self._create_variable_alfa()
             self._create_variable_z()
             self._create_variable_sigma()
+        elif self.mode is Mode.HMMCAO:
+            self._create_variable_beta_gamma()
+            self._create_variable_p()
 
         self._build_function_c()
 
@@ -354,6 +367,8 @@ class LpSolve:
             self._build_restrictions_for_mnm()
         elif self.mode is Mode.PIECEWISE_GIVEN:
             self._build_restrictions_for_mao()
+        elif self.mode is Mode.HMMCAO:
+            self._build_restrictions_for_hmmcao()
 
         self._execute()
         self._set_result()
@@ -394,13 +409,18 @@ class LpSolve:
             var_name = f'alfa{i}'
             self._vars.setdefault(var_name, pulp.LpVariable(var_name))
 
+    def _create_variable_p(self):
+        self._vars.setdefault('p', pulp.LpVariable('p'))
+
     def _build_function_c(self):
         params = []
 
-        for index in range(self.data.y.size):
-            params.append((self._vars.get(f'u{index}'), self.data.r))
-        for index in range(self.data.y.size):
-            params.append((self._vars.get(f'v{index}'), self.data.r))
+        if self.mode is not Mode.HMMCAO:
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'u{index}'), self.data.r))
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'v{index}'), self.data.r))
+
         for k in range(self.data.y.size - 1):
             for s in range(k + 1, self.data.y.size):
                 params.append((self._vars.get(f'l{k}{s}'), 1 - self.data.r))
@@ -409,6 +429,17 @@ class LpSolve:
             for index in range(len(self.data.x[0])):
                 params.append((self._vars.get(f'b{index}'), self.data.delta))
                 params.append((self._vars.get(f'g{index}'), self.data.delta))
+
+        if self.mode is Mode.HMMCAO:
+            params.append((self._vars.get('p'), self.data.r))
+
+            for index in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index}'), self.data.delta_1))
+                params.append((self._vars.get(f'g{index}'), self.data.delta_1))
+
+            for index in range(self.data.y.size):
+                params.append((self._vars.get(f'u{index}'), self.data.delta_2))
+                params.append((self._vars.get(f'v{index}'), self.data.delta_2))
 
         self._problem += pulp.LpAffineExpression(params), 'Функция цели'
 
@@ -484,6 +515,40 @@ class LpSolve:
 
                 index_restriction += 1
 
+    def _build_restrictions_for_hmmcao(self):
+        index_restriction = 0
+
+        for index in range(self.data.y.size):
+            params = []
+            for index_x in range(len(self.data.x[0])):
+                params.append((self._vars.get(f'b{index_x}'), self.data.x[index][index_x]))
+                params.append((self._vars.get(f'g{index_x}'), -1 * self.data.x[index][index_x]))
+            params.append((self._vars.get(f'u{index}'), 1))
+            params.append((self._vars.get(f'v{index}'), -1))
+
+            self._problem += pulp.LpAffineExpression(params) == self.data.y[index], str(index_restriction)
+            index_restriction += 1
+
+        index_omega = 0
+        for k in range(self.data.y.size - 1):
+            for s in range(k + 1, self.data.y.size):
+                params = []
+                for index in range(len(self.data.x[0])):
+                    x = self.data.x[k][index] - self.data.x[s][index]
+                    params.append((self._vars.get(f'b{index}'), x * self.data.omega[index_omega]))
+                    params.append((self._vars.get(f'g{index}'), -1 * x * self.data.omega[index_omega]))
+                params.append((self._vars.get(f'l{k}{s}'), 1))
+
+                self._problem += pulp.LpAffineExpression(params) >= 0, str(index_restriction)
+                index_restriction += 1
+
+                index_omega += 1
+
+        for index in range(self.data.y.size):
+            params = [(self._vars.get(f'u{index}'), 1), (self._vars.get(f'v{index}'), 1), (self._vars.get(f'p'), -1)]
+            self._problem += pulp.LpAffineExpression(params) <= 0, str(index_restriction)
+            index_restriction += 1
+
     def _execute(self):
         # PULP_CBC_CMD(msg=0) так библиотека в лог будет писать только ошибки.
         self._problem.solve(PULP_CBC_CMD(msg=0))
@@ -504,6 +569,8 @@ class LpSolve:
                 u.append(var.varValue)
             elif 'v' in var.name:
                 v.append(var.varValue)
+            elif 'p' in var.name:
+                self.result.p = var.varValue
 
         for index in range(len(b)):
             self.result.a.append(b[index] - g[index])

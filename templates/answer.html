@@ -35,13 +35,16 @@
         <th scope="col">lks</th>
         <th scope="col">L (∑lks)</th>
         <th scope="col">ε</th>
-        {% if meta_data.mode == meta_data.mode.PIECEWISE_GIVEN %}
+        {% if meta_data.mode.value == 'PIECEWISE_GIVEN' %}
           <th scope="col">Вектор срабатываний</th>
         {% endif %}
         <th scope="col">E</th>
         <th scope="col">КСП</th>
         <th scope="col">M</th>
         <th scope="col">Ñ</th>
+        {% if meta_data.mode.value == 'HMMCAO' %}
+          <th scope="col">P</th>
+        {% endif %}
       </tr>
       </thead>
       <tbody> <!-- Data -->
@@ -57,6 +60,15 @@
       </tbody>
     </table>
   </div>
+
+  <div>
+    <p>L (∑lks) - непрерывная форма критерия согласованности поведения.</p>
+    <p>E - средняя относительная ошибка аппроксимации.</p>
+    <p>КСП - критерий согласованности поведений.</p>
+    <p>M - сумма модулей ошибок.</p>
+    <p>Ñ - НКСП в относительной форме.</p>
+  </div>
+
   <br>
   <form name="loadResult" action="/form/load_result" method="post">
     <button type="submit" class="btn btn-primary">Скачать результаты решения</button>

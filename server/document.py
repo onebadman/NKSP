@@ -59,6 +59,8 @@ def render_table(mode: Mode, data: list, pods: List[Pod]):
         headers = ['α', 'lks', 'L (∑lks)', 'ε', 'E', 'КСП', 'M', 'Ñ']
     elif mode == Mode.PIECEWISE_GIVEN:
         headers = ['α', 'lks', 'L (∑lks)', 'ε', 'Вектор срабатываний', 'E', 'КСП', 'M', 'Ñ']
+    elif mode == Mode.HMMCAO:
+        headers = ['α', 'lks', 'L (∑lks)', 'ε', 'E', 'КСП', 'M', 'Ñ', 'P']
     else:
         raise Exception("Для используемого метода нет подходящего шаблона!")
 

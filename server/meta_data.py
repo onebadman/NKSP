@@ -15,6 +15,7 @@ class Mode(str, enum.Enum):
     MNM = 'MODE_MNM'
     PIECEWISE_GIVEN = 'MODE_PIECEWISE_GIVEN'
     IDEAL_DOT = 'IDEAL_DOT'
+    HMMCAO = 'HMMCAO'
 
     @staticmethod
     def build(value):
@@ -41,26 +42,13 @@ class MetaData:
     free_chlen: bool
     r: float  # Уровень приоритета суммы модулей.
     delta: float  # Малая положительная величина.
+    delta_1: float
+    delta_2: float
     var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
     m: int  # Большое положительное число.
 
     def __init__(self, data=None):
         self.mode = Mode.MNM
-        if data is not None:
-            self.menu_active_main = MetaData.get_value(data, 'menu_active_main')
-            self.menu_active_load = MetaData.get_value(data, 'menu_active_load')
-            self.menu_active_data = MetaData.get_value(data, 'menu_active_data')
-            self.menu_active_answer = MetaData.get_value(data, 'menu_active_answer')
-
-            self.load_data = MetaData.get_value(data, 'load_data')
-
-            self.mode = Mode.build(MetaData.get_value(data, 'mode'))
-
-            self.free_chlen = MetaData.get_value(data, 'free_chlen')
-            self.r = MetaData.get_value(data, 'r')
-            self.delta = MetaData.get_value(data, 'delta')
-            self.var_y = MetaData.get_value(data, 'var_y')
-            self.m = MetaData.get_value(data, 'm')
 
     def get_load_data_len(self):
         """
@@ -104,6 +92,10 @@ class MetaData:
         if self.mode is Mode.PIECEWISE_GIVEN:
             self.free_chlen = False
             self.m = int(self.get_value(form, 'M')) if self.get_value(form, 'M') else 100000
+        if self.mode is Mode.HMMCAO:
+            self.set_free_chlen(form)
+            self.delta_1 = float(self.get_value(form, 'delta_1')) if self.get_value(form, 'delta_1') else 0.1
+            self.delta_2 = float(self.get_value(form, 'delta_2')) if self.get_value(form, 'delta_2') else 0.1
 
     def update_params(self, form):
         self.r = float(self.get_value(form, 'r')) if self.get_value(form, 'r') else 0.1

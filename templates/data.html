@@ -16,10 +16,14 @@
                                                                               value="MODE_PIECEWISE_GIVEN">
                 Кусочно-заданная
               </option>
+              <option {% if meta_data.mode.value == 'HMMCAO' %} selected {% endif %} value="HMMCAO">
+                HMMCAO
+              </option>
             </select>
           </div>
         </div>
-        <div id="ideal-dot" class="row mb-3" {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %} hidden {% endif %}>
+        <div id="ideal-dot" class="row mb-3" {% if meta_data.mode.value not in ['MODE_MNM', 'IDEAL_DOT'] %}
+             hidden {% endif %}>
           <label class="col-sm-3 col-form-label">Поиск идеальной точки</label>
           <div class="col-sm-2">
             <input class="form-check-input" type="checkbox" name="ideal_dot" style="min-width: max-content"
@@ -38,63 +42,134 @@
 
     <br>
 
-    <form action="/form/data" method="post" name="setData">
-      <div class="row align-items-start">
-        <div class="row mb-3">
-          <label for="inputData1" class="col-sm-3 col-form-label">Введите индекс зависимой переменной</label>
-          <div class="col-sm-2">
-            <input type="number" class="form-control" style="min-width: max-content" name="var_y"
-                   {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
-          </div>
-        </div>
-        {% if meta_data.mode != 'IDEAL_DOT' %}
-          <div id="div-r" class="row mb-3">
-            <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
-            <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="r"
-                     {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
+    <div class="row">
+      <div class="col">
+        <form action="/form/data" method="post" name="setData">
+          <div class="row align-items-start">
+            <div class="row mb-3">
+              <label for="inputData1" class="col-sm-3 col-form-label">Введите индекс зависимой переменной</label>
+              <div class="col-sm-2">
+                <input type="number" class="form-control" style="min-width: max-content" name="var_y"
+                       {% if meta_data.var_y != None %}value="{{ meta_data.var_y }}"{% endif %}>
+              </div>
             </div>
+            {% if meta_data.mode != 'IDEAL_DOT' %}
+              <div id="div-r" class="row mb-3">
+                <label for="inputData2" class="col-sm-3 col-form-label">Уровень приоритета суммы модулей (r)</label>
+                <div class="col-sm-2">
+                  <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content"
+                         name="r"
+                         {% if meta_data.r != None %}value="{{ meta_data.r }}"{% endif %}>
+                </div>
+              </div>
+            {% endif %}
+            {% if meta_data.mode.value in ['MODE_MNM', 'IDEAL_DOT'] %}
+              <div class="row mb-3">
+                <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина (δ)</label>
+                <div class="col-sm-2">
+                  <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content"
+                         name="delta"
+                         {% if meta_data.delta != None %}value="{{ meta_data.delta }}"{% endif %}>
+                </div>
+              </div>
+            {% endif %}
+            {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
+              <div class="row mb-3">
+                <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
+                <div class="col-sm-2">
+                  <input type="number" step="1" class="form-control" style="min-width: max-content" name="M"
+                         {% if meta_data.m != None %}value="{{ meta_data.m }}"{% endif %}>
+                </div>
+              </div>
+            {% endif %}
+            {% if meta_data.mode.value == 'HMMCAO' %}
+              <div class="row mb-3">
+                <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина
+                  (δ<sub>1</sub>)</label>
+                <div class="col-sm-2">
+                  <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content"
+                         name="delta_1"
+                         {% if meta_data.delta_1 != None %}value="{{ meta_data.delta_1 }}"{% endif %}>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина
+                  (δ<sub>2</sub>)</label>
+                <div class="col-sm-2">
+                  <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content"
+                         name="delta_2"
+                         {% if meta_data.delta_2 != None %}value="{{ meta_data.delta_2 }}"{% endif %}>
+                </div>
+              </div>
+            {% endif %}
+            {% if meta_data.mode.value in ['MODE_MNM', 'IDEAL_DOT', 'HMMCAO'] %}
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="free_chlen" style="min-width: max-content"
+                         id="gridCheck"
+                      {% if meta_data.free_chlen %} checked {% endif %}>
+                  <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
+                </div>
+              </div>
+            {% endif %}
           </div>
+
+          <br>
+          <button type="submit" class="btn btn-primary">Получить решение</button>
+        </form>
+      </div>
+      <div class="col">
+        {% if meta_data.mode == 'HMMCAO' %}
+          <p>
+            $$y_k = \sum_{i=1}^{m}{a_i x_{ki} + \epsilon_k}, \qquad k=\overline{1,n}.$$
+            $$y = Xa+ \epsilon $$
+            Задача ЛП:
+            $$r * p + (1-r) \sum_{k=1}^{n-1}{\sum_{s=k+1}^{n}{l_{ks}}} +\delta_1 \sum_{i=1}^{m}{(\beta_i + \gamma_i)} +
+            \delta_2\sum_{k=1}^{n}{(\upsilon_k + \nu_k)} \rightarrow min,$$
+            $$X(\beta - \gamma) + \upsilon - \nu = y,$$
+            $$\upsilon_k + \nu_k - p \leq 0, \, k=\overline{1,n},$$
+            $$\omega_{ks} \sum_{i=1}^{m}{(\beta_i - \gamma_i)(x_{ki} - x_{si})} + l_{ks}\geq 0, \, k=\overline{1,n-1}, s
+            = \overline{k+1, n},$$
+            $$\upsilon \geq 0, \, \nu \geq 0, \, \beta \geq 0, \, \gamma \geq 0, \, l_{ks} \geq 0.$$
+            Потом \(a=\beta -\gamma\).
+            <br><br>
+            \(\delta_1, \delta_2 -\) малые положительные константы (задаются пользователем).
+          </p>
         {% endif %}
-        {% if meta_data.mode.value in ['MODE_MNM', 'IDEAL_DOT'] %}
-          <div class="row mb-3">
-            <label for="inputData3" class="col-sm-3 col-form-label">Малая положительная величина (δ)</label>
-            <div class="col-sm-2">
-              <input type="number" step="0.00000000001" class="form-control" style="min-width: max-content" name="delta"
-                     {% if meta_data.delta != None %}value="{{ meta_data.delta }}"{% endif %}>
-            </div>
-          </div>
-          <div class="col-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="free_chlen" style="min-width: max-content"
-                     id="gridCheck"
-                  {% if meta_data.free_chlen %} checked {% endif %}>
-              <label class="form-check-label" for="gridCheck">Использовать свободный член?</label>
-            </div>
-          </div>
+        {% if meta_data.mode == 'MODE_PIECEWISE_GIVEN' %}
+          <p>
+            Целевая функция:
+            $$r\sum_{k=1}^{n}{(\upsilon_k -\nu_k)} + (1-r)\sum_{k=1}^{n-1}{\sum_{s=k+1}^{n}{l_{ks}}} \rightarrow min.$$
+            Ограничения:
+            $$z_k + \upsilon_k - \nu_k = y_k, \, k = \overline{1,n}$$
+            $$z_k +\leq a_i x_{ki}, \, k=\overline{1,n}, i=\overline{1,m}$$
+            $$a_i x_{ki} - z_k \leq (1-\sigma_{ki})M, \, k=\overline{1,n}, i=\overline{1,m}$$
+            $$\sum_{i=1}^{m}{\sigma_{ki}}= 1, \, k=\overline{1,n}$$
+            $$\omega_{ks}(z_k - z_s) + l_{ks} \geq 0, \, k=\overline{1,n-1}, s=\overline{k+1, n}$$
+            $$\sigma_{ki} \in \left\{0,1 \right\}, \, k=\overline{1,n}, i=\overline{1, m}$$
+            где \(M > 0\)
+          </p>
         {% endif %}
-        {% if meta_data.mode.value == 'MODE_PIECEWISE_GIVEN' %}
-          <div class="row mb-3">
-            <label for="inputData2" class="col-sm-3 col-form-label">Большое положительное число (M)</label>
-            <div class="col-sm-2">
-              <input type="number" step="1" class="form-control" style="min-width: max-content" name="M"
-                     {% if meta_data.m != None %}value="{{ meta_data.m }}"{% endif %}>
-            </div>
-          </div>
+        {% if meta_data.mode in ['MODE_MNM', 'IDEAL_DOT'] %}
+          <p>
+            $$r \sum_{k=1}^{n}{(\upsilon_k + \nu_k)} + (1-r) \sum_{k=1}^{n-1}{\sum_{s=k+1}^{n}{l_{ks}}} +\delta
+            \sum_{i=1}^{m}{(\beta_i + \gamma_i)} \rightarrow min,$$
+            $$X(\beta - \gamma) + \upsilon - \nu = y,$$
+            $$\omega_{ks} \sum_{i=1}^{m}{(\beta_i - \gamma_i)(x_{ki} - x_{si})} + l_{ks}\geq 0, \, k=\overline{1,n-1},
+            s=\overline{k+1, n},$$
+            $$\upsilon \geq 0, \, \nu \geq 0, \, \beta \geq 0, \, \gamma \geq 0, \, l_{ks} \geq 0.$$
+          </p>
         {% endif %}
       </div>
-
-      <br>
-      <button type="submit" class="btn btn-primary">Получить решение</button>
-    </form>
-
+    </div>
     <script>
         function changeModeHandler(event) {
             if (event.target.value === 'MODE_MNM')
                 document.getElementById('ideal-dot').hidden = false
-            if (event.target.value === 'MODE_PIECEWISE_GIVEN') {
+            if (event.target.value === 'MODE_PIECEWISE_GIVEN')
                 document.getElementById('ideal-dot').hidden = true
-            }
+            if (event.target.value === 'HMMCAO')
+                document.getElementById('ideal-dot').hidden = true
 
         }
     </script>
