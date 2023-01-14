@@ -81,6 +81,15 @@ def save_session(_session: Session):
     set_object_session('token', _session.token.body)
 
 
+def read_file(file):
+    if file and allowed_file(file.filename):
+        _list = []
+        for line in file.stream.readlines():
+            _list.append(list(map(float, line.decode('utf-8').split())))
+        file.close()
+        return _list
+
+
 @app.route('/')
 def main():
     """
@@ -126,13 +135,8 @@ def load_post():
     meta_data.set_active_menu(MenuTypes.LOAD)
 
     file = request.files['file']
-    if file and allowed_file(file.filename):
-        _list = []
-        for line in file.stream.readlines():
-            _list.append(list(map(float, line.decode('utf-8').split())))
-        file.close()
-        meta_data.load_data = _list
-        del _list
+
+    meta_data.load_data = read_file(file)
 
     _session.meta_data = meta_data
     return render_template('load.html', meta_data=meta_data)
@@ -184,6 +188,26 @@ def criteria():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.CRITERIA)
 
+    return render_template('criteria.html', meta_data=meta_data)
+
+
+@app.route('/criteria', methods=['POST'])
+def criteria_post():
+    """
+    Обрабатывает загрузку файла с исходными данными для расчета критериев.
+    """
+
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_active_menu(MenuTypes.CRITERIA)
+
+    file = request.files['file']
+
+    meta_data.criteria_data = read_file(file)
+
+    _session.meta_data = meta_data
     return render_template('criteria.html', meta_data=meta_data)
 
 
