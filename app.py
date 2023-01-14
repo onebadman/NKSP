@@ -8,7 +8,7 @@ from server.criteria import Criteria
 from server.lp import Data, LpSolve, LpIdealDot
 from server.meta_data import MenuTypes, Mode
 from server.session import Session
-from server.document import render_table
+from server.document import render_table, render_criteria
 from server.config import SECRET_FLASK, SPACE
 
 
@@ -189,6 +189,11 @@ def criteria_get():
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.CRITERIA)
 
+    _session.meta_data = meta_data
+
+    if 'criteria' in meta_data.__dict__:
+        return render_template('criteria.html', meta_data=meta_data, data_criteria=meta_data.criteria.results.to_print())
+
     return render_template('criteria.html', meta_data=meta_data)
 
 
@@ -208,10 +213,10 @@ def criteria_post():
 
     meta_data.criteria_data = read_file(file)
 
-    criteria = Criteria(meta_data.criteria_data)
+    meta_data.criteria = Criteria(meta_data.criteria_data)
 
     _session.meta_data = meta_data
-    return render_template('criteria.html', meta_data=meta_data, data_criteria=criteria.results.to_print())
+    return redirect(url_for('criteria_get'))
 
 
 def _lp_task(meta_data, _session):
@@ -261,6 +266,21 @@ def form_load_result():
         file_stream,
         as_attachment=True,
         download_name=f'result_'
+                      f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
+                      f'.docx')
+
+
+@app.route('/form/load_criteria_result', methods=["POST"])
+def form_load_criteria_result():
+    _session = get_session()
+    save_session(_session)
+
+    file_stream = render_criteria(_session.meta_data.criteria.results.to_print())
+
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=f'criteria_'
                       f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
                       f'.docx')
 
