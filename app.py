@@ -178,7 +178,7 @@ def answer():
 
 
 @app.route('/criteria', methods=["GET"])
-def criteria():
+def criteria_get():
     """
     Формирует страницу для вычисления критериев.
     """
@@ -208,10 +208,10 @@ def criteria_post():
 
     meta_data.criteria_data = read_file(file)
 
-    Criteria(meta_data.criteria_data)
+    criteria = Criteria(meta_data.criteria_data)
 
     _session.meta_data = meta_data
-    return render_template('criteria.html', meta_data=meta_data)
+    return render_template('criteria.html', meta_data=meta_data, data_criteria=criteria.results.to_print())
 
 
 def _lp_task(meta_data, _session):
