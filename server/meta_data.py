@@ -38,6 +38,7 @@ class MetaData:
     menu_active_criteria: bool
 
     load_data: list
+    criteria_data: list
 
     mode: Mode
 
@@ -49,7 +50,7 @@ class MetaData:
     var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
     m: int  # Большое положительное число.
 
-    def __init__(self, data=None):
+    def __init__(self):
         self.mode = Mode.MNM
 
     def get_load_data_len(self):
@@ -65,6 +66,20 @@ class MetaData:
         Значения в массиве начинается с 1.
         """
         return list(map(int, range(1, len(self.load_data) + 1)))
+
+    def get_criteria_data_len(self):
+        """
+        Получает массив индексов столбцов загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.criteria_data[0]) + 1)))
+
+    def get_criteria_data_rows_len(self):
+        """
+        Получает массив индексов строк загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.criteria_data) + 1)))
 
     def set_active_menu(self, menu_type: MenuTypes):
         self._drop_active_menu()

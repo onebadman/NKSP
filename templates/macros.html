@@ -23,3 +23,28 @@
     </table>
   </div>
 {% endmacro %}
+
+{% macro render_table_criteria_data(data) %}
+  <div style="max-height: 500px" class="table-responsive">
+    <table class="table table-sm table-striped table-bordered">
+      <thead> <!-- Column names -->
+      <tr>
+        <th scope="col">#</th>
+        {% for item in data.get_criteria_data_len() %}
+          <th scope="col">{{ item }}</th>
+        {% endfor %}
+      </tr>
+      </thead>
+      <tbody> <!-- Data -->
+      {% for index in data.get_criteria_data_rows_len() %}
+        <tr>
+          <th scope="row">{{ index }}</th>
+          {% for item in data.criteria_data[index-1] %}
+            <td>{{ item }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endmacro %}
