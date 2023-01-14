@@ -31,7 +31,11 @@
       <tr>
         <th scope="col">#</th>
         {% for item in data.get_criteria_data_len() %}
-          <th scope="col">{{ item }}</th>
+          {% if item == 1 %}
+            <th scope="col">y</th>
+          {% else %}
+            <th scope="col">y{{ item - 1 }}</th>
+          {% endif %}
         {% endfor %}
       </tr>
       </thead>
