@@ -44,7 +44,10 @@ class Criteria:
 
     results: Results
 
-    def __init__(self, data: list):
+    def __init__(self, data: list = None):
+        if not data:
+            return
+
         self.data = data
         self.results = Results()
 

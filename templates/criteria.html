@@ -10,36 +10,47 @@
   </div>
 
   {% if meta_data.criteria_data %}
+    <br>
+    <form name="loadResult" action="/form/load_criteria_result" method="post">
+      <button type="submit" class="btn btn-primary">Скачать результаты решения</button>
+    </form>
+
+    <br>
+
     {{ render_table_criteria_data(meta_data) }}
+
+    <br>
+
+    <div style="height: 500px" class="table-responsive">
+      <table class="table table-sm table-striped table-bordered">
+        <thead> <!-- Column names -->
+        <tr>
+          <th scope="col">Вариант модели</th>
+          <th scope="col">\( \mathbf{Е} \)</th>
+          <th scope="col">\( \mathbf{K} \)</th>
+          <th scope="col">\( \mathbf{ \tilde K } \)</th>
+          <th scope="col">\( \mathbf{L} \)</th>
+          <th scope="col">\( \mathbf{ \tilde N } \)̃</th>
+          <th scope="col">\( \mathbf{М} \)</th>
+          <th scope="col">\( \mathbf{О} \)</th>
+          <th scope="col">\( \mathbf{Z} \)</th>
+          <th scope="col">\( \mathbf{Н} \)</th>
+          <th scope="col">\( \mathbf{R} \)</th>
+        </tr>
+        </thead>
+        <tbody> <!-- Data -->
+        {% for items in data_criteria %}
+          <tr>
+            {% for item in items %}
+              <td>{{ item }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
   {% endif %}
 
-  <div style="height: 500px" class="table-responsive">
-    <table class="table table-sm table-striped table-bordered">
-      <thead> <!-- Column names -->
-      <tr>
-        <th scope="col">Вариант модели</th>
-        <th scope="col">\( \mathbf{Е} \)</th>
-        <th scope="col">\( \mathbf{K} \)</th>
-        <th scope="col">\( \mathbf{ \tilde K } \)</th>
-        <th scope="col">\( \mathbf{L} \)</th>
-        <th scope="col">\( \mathbf{ \tilde N } \)̃</th>
-        <th scope="col">\( \mathbf{М} \)</th>
-        <th scope="col">\( \mathbf{О} \)</th>
-        <th scope="col">\( \mathbf{Z} \)</th>
-        <th scope="col">\( \mathbf{Н} \)</th>
-        <th scope="col">\( \mathbf{R} \)</th>
-      </tr>
-      </thead>
-      <tbody> <!-- Data -->
-      {% for items in data_criteria %}
-        <tr>
-          {% for item in items %}
-              <td>{{ item }}</td>
-          {% endfor %}
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
 
 {% endblock %}

@@ -1,6 +1,8 @@
 import enum
 import json
 
+from server.criteria import Criteria
+
 
 class MenuTypes(enum.Enum):
     MAIN = 'MAIN'
@@ -39,6 +41,7 @@ class MetaData:
 
     load_data: list
     criteria_data: list
+    criteria: Criteria
 
     mode: Mode
 
