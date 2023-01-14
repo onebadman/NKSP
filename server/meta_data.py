@@ -7,6 +7,7 @@ class MenuTypes(enum.Enum):
     LOAD = 'LOAD'
     DATA = 'DATA'
     ANSWER = 'ANSWER'
+    CRITERIA = 'CRITERIA'
 
 
 class Mode(str, enum.Enum):
@@ -34,6 +35,7 @@ class MetaData:
     menu_active_load: bool
     menu_active_data: bool
     menu_active_answer: bool
+    menu_active_criteria: bool
 
     load_data: list
 
@@ -75,6 +77,8 @@ class MetaData:
             self.menu_active_data = True
         elif menu_type == MenuTypes.ANSWER:
             self.menu_active_answer = True
+        elif menu_type == MenuTypes.CRITERIA:
+            self.menu_active_criteria = True
 
     def set_free_chlen(self, form):
         if self.get_value(form, 'free_chlen'):
@@ -107,6 +111,7 @@ class MetaData:
         self.menu_active_load = False
         self.menu_active_data = False
         self.menu_active_answer = False
+        self.menu_active_criteria = False
 
     def set_mode(self, form):
         self.mode = Mode(self.get_value(form, 'mode') if self.get_value(form, 'mode') else Mode.MNM)

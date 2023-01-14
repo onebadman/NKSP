@@ -172,6 +172,21 @@ def answer():
         return _lp_task(meta_data, _session)
 
 
+@app.route('/criteria', methods=["GET"])
+def criteria():
+    """
+    Формирует страницу для вычисления критериев.
+    """
+
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_active_menu(MenuTypes.CRITERIA)
+
+    return render_template('criteria.html', meta_data=meta_data)
+
+
 def _lp_task(meta_data, _session):
     result = LpSolve(meta_data.mode, Data(meta_data)).result
 
