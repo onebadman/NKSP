@@ -4,6 +4,7 @@ import os
 import pytz as pytz
 from flask import Flask, render_template, session, request, redirect, url_for, send_file, send_from_directory
 
+from server.criteria import Criteria
 from server.lp import Data, LpSolve, LpIdealDot
 from server.meta_data import MenuTypes, Mode
 from server.session import Session
@@ -206,6 +207,8 @@ def criteria_post():
     file = request.files['file']
 
     meta_data.criteria_data = read_file(file)
+
+    Criteria(meta_data.criteria_data)
 
     _session.meta_data = meta_data
     return render_template('criteria.html', meta_data=meta_data)
