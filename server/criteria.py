@@ -14,6 +14,28 @@ class Results:
     sum_squared_errors: List[float]
     multiple_determination_criterion: List[float]
 
+    def to_print(self):
+        data = []
+
+        n = len(self.ksp)
+        for index in range(n):
+            data.append([])
+
+            data[index].append(f'y{index + 1}')
+
+            data[index].append(self.approximation_error[index])
+            data[index].append(self.ksp[index])
+            data[index].append(self.relative_ksp[index])
+            data[index].append(self.continuous_ksp[index])
+            data[index].append(self.relative_continuous_ksp[index])
+            data[index].append(self.sum_error_modules[index])
+            data[index].append(self.maximum_error[index])
+            data[index].append(self.maximum_relative_error[index])
+            data[index].append(self.sum_squared_errors[index])
+            data[index].append(self.multiple_determination_criterion[index])
+
+        return data
+
 
 class Criteria:
     data: list
