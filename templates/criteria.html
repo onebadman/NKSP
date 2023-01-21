@@ -21,7 +21,7 @@
 
     <br>
 
-    <div style="height: 500px" class="table-responsive">
+    <div style="max-height: 500px" class="table-responsive">
       <table class="table table-sm table-striped table-bordered">
         <thead> <!-- Column names -->
         <tr>
@@ -48,6 +48,140 @@
         {% endfor %}
         </tbody>
       </table>
+    </div>
+
+    <br/>
+
+    <div>
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_e"
+                aria-expanded="false" aria-controls="collapseExample">
+          E - средняя относительная ошибка аппроксимации.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_e">
+        <div class="card card-body">
+          $$E=100\% \sum_{k=1}^{n}\left | \frac{\varepsilon_{k}}{y_{k}} \right | / n$$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_k"
+                aria-expanded="false" aria-controls="collapseExample">
+          K - критерий согласованности поведений (КСП).
+        </button>
+      </p>
+      <div class="collapse" id="collapse_k">
+        <div class="card card-body">
+          $$ K(a)=\sum_{k=1}^{n-1}\sum_{s=k+1}^{n}sign[(y_{k}-y_{s})(\hat{y_{k}} - \hat{y_{s}}))], $$
+          $$ sign(a)=\left\{\begin{matrix}
+          1, & a \geq 0 & \\
+          0, & в\, противном\, случае. &
+          \end{matrix}\right. $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_kk"
+                aria-expanded="false" aria-controls="collapseExample">
+          Ǩ - относительный КСП.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_kk">
+        <div class="card card-body">
+          $$ \tilde{K}=\frac{200\%K}{n(n-1)} $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_l"
+                aria-expanded="false" aria-controls="collapseExample">
+          L - непрерывный КСП.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_l">
+        <div class="card card-body">
+          $$ L(a)=\sum_{k=1}^{n-1}\sum_{s=k+1}^{n}l_{ks} \, , $$
+          $$ l_{ks}=\left\{\begin{matrix}
+          \left| \hat{y_{k}} - \hat{y_{s}} \right| & (y_{k}-y_{s})(\hat{y_{k}} - \hat{y_{s}}) < 0 & \\
+          0, & в\, противном\, случае. &
+          \end{matrix}\right. $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_n"
+                aria-expanded="false" aria-controls="collapseExample">
+          Ñ - относительный непрерывный КСП.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_n">
+        <div class="card card-body">
+          $$ \tilde{N}(a)=\frac{2*100}{n(n-1)} \sum_{k=1}^{n-1}\sum_{s=k+1}^{n}l_{ks} / (y_{k}+y_{s}). $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_m"
+                aria-expanded="false" aria-controls="collapseExample">
+          M - сумма модулей ошибок.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_m">
+        <div class="card card-body">
+          $$ M=\sum_{k=1}^{n}\left| \varepsilon_{k} \right| $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_o"
+                aria-expanded="false" aria-controls="collapseExample">
+          О - максимальная ошибка.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_o">
+        <div class="card card-body">
+          $$ O=^\,{\max_{k=\overline{1,n}}} \left| \varepsilon_k \right| $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_z"
+                aria-expanded="false" aria-controls="collapseExample">
+          Z - максимальная относительная ошибка.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_z">
+        <div class="card card-body">
+          $$ Z=100\% ^\,{\max_{k=\overline{1,n}}} \left| \frac{\varepsilon_k}{y_{k}} \right| $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_h"
+                aria-expanded="false" aria-controls="collapseExample">
+          Н - сумма квадратов ошибок.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_h">
+        <div class="card card-body">
+          $$ H=\sum_{k=1}^{n} \varepsilon^{2}_{k} $$
+        </div>
+      </div>
+
+      <p>
+        <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_r"
+                aria-expanded="false" aria-controls="collapseExample">
+          R - критерий множественной детерминации.
+        </button>
+      </p>
+      <div class="collapse" id="collapse_r">
+        <div class="card card-body">
+          $$ R=\frac{\sum_{k=1}^{n}(\hat{y_{k}}-\bar{y})^{2}}{\sum_{k=1}^{n}(y_{k}-\bar{y})^{2}}\ , $$
+          $$ \text{где}\, \hat{y}=\frac{1}{n}\sum_{k=1}^{n} y_{k} $$
+        </div>
+      </div>
+
     </div>
 
   {% endif %}
