@@ -6,7 +6,7 @@ from flask import Flask, render_template, session, request, redirect, url_for, s
 
 from server.criteria import Criteria
 from server.lp import Data, LpSolve, LpIdealDot
-from server.meta_data import MenuTypes, Mode
+from server.meta_data import MenuTypes, Mode, AppType
 from server.session import Session
 from server.document import render_table, render_criteria
 from server.config import SECRET_FLASK, SPACE
@@ -102,6 +102,7 @@ def main():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.MAIN)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('main.html', meta_data=meta_data)
@@ -118,6 +119,7 @@ def load_get():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('load.html', meta_data=meta_data)
@@ -134,6 +136,7 @@ def load_post():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
+    meta_data.set_active_app(AppType.NSKP)
 
     file = request.files['file']
 
@@ -154,6 +157,7 @@ def data_get():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.DATA)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('data.html', meta_data=meta_data)
@@ -170,6 +174,7 @@ def answer():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
+    meta_data.set_active_app(AppType.NSKP)
 
     if meta_data.mode is Mode.IDEAL_DOT:
         return _ideal_dot_task(meta_data, _session)
@@ -188,6 +193,7 @@ def criteria_get():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.CRITERIA)
+    meta_data.set_active_app(AppType.CRITERIA)
 
     _session.meta_data = meta_data
 
@@ -208,6 +214,7 @@ def criteria_post():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.CRITERIA)
+    meta_data.set_active_app(AppType.CRITERIA)
 
     file = request.files['file']
 
