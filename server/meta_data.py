@@ -12,6 +12,11 @@ class MenuTypes(enum.Enum):
     CRITERIA = 'CRITERIA'
 
 
+class AppType(enum.Enum):
+    NSKP = 'APP_NSKP'
+    CRITERIA = 'APP_CRITERIA'
+
+
 class Mode(str, enum.Enum):
     """Режим расчётов."""
 
@@ -32,6 +37,9 @@ class MetaData:
     Сущность для хранения и взаимодействия с клиентскими метаданными.
     Используется как хранилище состояний клиента.
     """
+
+    menu_active_app_nskp: bool
+    menu_active_app_criteria: bool
 
     menu_active_main: bool
     menu_active_load: bool
@@ -98,6 +106,14 @@ class MetaData:
         elif menu_type == MenuTypes.CRITERIA:
             self.menu_active_criteria = True
 
+    def set_active_app(self, app_type: AppType):
+        self._drop_active_app()
+
+        if app_type == AppType.NSKP:
+            self.menu_active_app_nskp = True
+        elif app_type == AppType.CRITERIA:
+            self.menu_active_app_criteria = True
+
     def set_free_chlen(self, form):
         if self.get_value(form, 'free_chlen'):
             self.free_chlen = True
@@ -130,6 +146,10 @@ class MetaData:
         self.menu_active_data = False
         self.menu_active_answer = False
         self.menu_active_criteria = False
+
+    def _drop_active_app(self):
+        self.menu_active_app_nskp = False
+        self.menu_active_app_criteria = False
 
     def set_mode(self, form):
         self.mode = Mode(self.get_value(form, 'mode') if self.get_value(form, 'mode') else Mode.MNM)

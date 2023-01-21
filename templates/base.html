@@ -12,28 +12,61 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"/>
   <!-- Icons to support Material Design -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
 </head>
 <body>
 <div id="navigation">
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a class="nav-link {% if meta_data.menu_active_main %}active{% endif %}" aria-current="page" href="/">Основное
-        меню</a>
+      <a class="btn" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+        <span class="material-symbols-outlined">menu</span>
+      </a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link {% if meta_data.menu_active_load %}active{% endif %}" href="/load">Загрузка исходных данных</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if meta_data.menu_active_data %}active{% endif %}" href="/data">Загруженная матрица</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if meta_data.menu_active_answer %}active{% endif %}" href="/answer">Результаты решения</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link {% if meta_data.menu_active_criteria %}active{% endif %}" href="/criteria">Расчет критериев</a>
-    </li>
+    {% if meta_data.menu_active_app_nskp %}
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_main %}active{% endif %}" aria-current="page" href="/">О
+          программе</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_load %}active{% endif %}" href="/load">Загрузка исходных
+          данных</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_data %}active{% endif %}" href="/data">Загруженная матрица</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_answer %}active{% endif %}" href="/answer">Результаты решения</a>
+      </li>
+    {% endif %}
+    {% if meta_data.menu_active_app_criteria %}
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_criteria %}active{% endif %}" href="/criteria">Расчет
+          критериев</a>
+      </li>
+    {% endif %}
   </ul>
 </div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasExampleLabel">Меню</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="nav flex-column nav-pills nav-justified">
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_app_nskp %}active{% endif %}" href="/">Решение регрессионных
+          моделей</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if meta_data.menu_active_app_criteria %}active{% endif %}" href="/criteria">Расчёт
+          критериев</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
 
 <div class="py-3 px-lg-5">
   {% block content %}
