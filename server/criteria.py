@@ -151,7 +151,7 @@ class Criteria:
             for k in range(n - 1):
                 for s in range(k + 1, n):
                     if (self.actual_values[k] - self.actual_values[s]) * (items[k] - items[s]) < 0:
-                        value += abs(items[k] - items[s]) / (self.actual_values[k] - self.actual_values[s])
+                        value += abs(items[k] - items[s]) / (self.actual_values[k] + self.actual_values[s])
 
             value *= (200 / (n * (n - 1)))
 
