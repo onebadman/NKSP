@@ -23,18 +23,22 @@ class Results:
 
             data[index].append(f'y{index + 1}')
 
-            data[index].append(self.approximation_error[index])
-            data[index].append(self.ksp[index])
-            data[index].append(self.relative_ksp[index])
-            data[index].append(self.continuous_ksp[index])
-            data[index].append(self.relative_continuous_ksp[index])
-            data[index].append(self.sum_error_modules[index])
-            data[index].append(self.maximum_error[index])
-            data[index].append(self.maximum_relative_error[index])
-            data[index].append(self.sum_squared_errors[index])
+            data[index].append(self.formatting(self.approximation_error[index]))
+            data[index].append(self.formatting(self.ksp[index]))
+            data[index].append(self.formatting(self.relative_ksp[index]))
+            data[index].append(self.formatting(self.continuous_ksp[index]))
+            data[index].append(self.formatting(self.relative_continuous_ksp[index]))
+            data[index].append(self.formatting(self.sum_error_modules[index]))
+            data[index].append(self.formatting(self.maximum_error[index]))
+            data[index].append(self.formatting(self.maximum_relative_error[index]))
+            data[index].append(self.formatting(self.sum_squared_errors[index]))
             # data[index].append(self.multiple_determination_criterion[index])
 
         return data
+
+    @staticmethod
+    def formatting(value: float) -> float:
+        return float('{:.2f}'.format(value))
 
 
 class Criteria:
