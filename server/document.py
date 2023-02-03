@@ -84,7 +84,7 @@ def render_criteria(data: list):
 
     template = DocxTemplate(path)
 
-    headers = ['Вариант модели', 'Е', 'K', 'Ǩ', 'L', 'Ñ', 'М', 'О', 'Z', 'H', 'R']
+    headers = ['Вариант модели', 'Е', 'K', 'Ǩ', 'L', 'Ñ', 'М', 'О', 'Z', 'H']
 
     context = {
         'headers': headers,

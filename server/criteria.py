@@ -12,7 +12,7 @@ class Results:
     maximum_error: List[float]
     maximum_relative_error: List[float]
     sum_squared_errors: List[float]
-    multiple_determination_criterion: List[float]
+    # multiple_determination_criterion: List[float]
 
     def to_print(self):
         data = []
@@ -32,7 +32,7 @@ class Results:
             data[index].append(self.maximum_error[index])
             data[index].append(self.maximum_relative_error[index])
             data[index].append(self.sum_squared_errors[index])
-            data[index].append(self.multiple_determination_criterion[index])
+            # data[index].append(self.multiple_determination_criterion[index])
 
         return data
 
@@ -65,7 +65,7 @@ class Criteria:
         self.get_maximum_error()
         self.get_maximum_relative_error()
         self.get_sum_squared_errors()
-        self.get_multiple_determination_criterion()
+        # self.get_multiple_determination_criterion()
 
     def data_preparation(self):
         self.actual_values = []
