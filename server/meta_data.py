@@ -1,12 +1,20 @@
 import enum
 import json
 
+from server.criteria import Criteria
+
 
 class MenuTypes(enum.Enum):
     MAIN = 'MAIN'
     LOAD = 'LOAD'
     DATA = 'DATA'
     ANSWER = 'ANSWER'
+    CRITERIA = 'CRITERIA'
+
+
+class AppType(enum.Enum):
+    NSKP = 'APP_NSKP'
+    CRITERIA = 'APP_CRITERIA'
 
 
 class Mode(str, enum.Enum):
@@ -30,12 +38,18 @@ class MetaData:
     Используется как хранилище состояний клиента.
     """
 
+    menu_active_app_nskp: bool
+    menu_active_app_criteria: bool
+
     menu_active_main: bool
     menu_active_load: bool
     menu_active_data: bool
     menu_active_answer: bool
+    menu_active_criteria: bool
 
     load_data: list
+    criteria_data: list
+    criteria: Criteria
 
     mode: Mode
 
@@ -47,7 +61,7 @@ class MetaData:
     var_y: int  # Индекс столбца, зависимой переменной. Начинается с 1.
     m: int  # Большое положительное число.
 
-    def __init__(self, data=None):
+    def __init__(self):
         self.mode = Mode.MNM
 
     def get_load_data_len(self):
@@ -64,6 +78,20 @@ class MetaData:
         """
         return list(map(int, range(1, len(self.load_data) + 1)))
 
+    def get_criteria_data_len(self):
+        """
+        Получает массив индексов столбцов загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.criteria_data[0]) + 1)))
+
+    def get_criteria_data_rows_len(self):
+        """
+        Получает массив индексов строк загруженной матрицы.
+        Значения в массиве начинается с 1.
+        """
+        return list(map(int, range(1, len(self.criteria_data) + 1)))
+
     def set_active_menu(self, menu_type: MenuTypes):
         self._drop_active_menu()
 
@@ -75,6 +103,16 @@ class MetaData:
             self.menu_active_data = True
         elif menu_type == MenuTypes.ANSWER:
             self.menu_active_answer = True
+        elif menu_type == MenuTypes.CRITERIA:
+            self.menu_active_criteria = True
+
+    def set_active_app(self, app_type: AppType):
+        self._drop_active_app()
+
+        if app_type == AppType.NSKP:
+            self.menu_active_app_nskp = True
+        elif app_type == AppType.CRITERIA:
+            self.menu_active_app_criteria = True
 
     def set_free_chlen(self, form):
         if self.get_value(form, 'free_chlen'):
@@ -107,6 +145,11 @@ class MetaData:
         self.menu_active_load = False
         self.menu_active_data = False
         self.menu_active_answer = False
+        self.menu_active_criteria = False
+
+    def _drop_active_app(self):
+        self.menu_active_app_nskp = False
+        self.menu_active_app_criteria = False
 
     def set_mode(self, form):
         self.mode = Mode(self.get_value(form, 'mode') if self.get_value(form, 'mode') else Mode.MNM)

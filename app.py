@@ -4,10 +4,11 @@ import os
 import pytz as pytz
 from flask import Flask, render_template, session, request, redirect, url_for, send_file, send_from_directory
 
+from server.criteria import Criteria
 from server.lp import Data, LpSolve, LpIdealDot
-from server.meta_data import MenuTypes, Mode
+from server.meta_data import MenuTypes, Mode, AppType
 from server.session import Session
-from server.document import render_table
+from server.document import render_table, render_criteria
 from server.config import SECRET_FLASK, SPACE
 
 
@@ -81,6 +82,15 @@ def save_session(_session: Session):
     set_object_session('token', _session.token.body)
 
 
+def read_file(file):
+    if file and allowed_file(file.filename):
+        _list = []
+        for line in file.stream.readlines():
+            _list.append(list(map(float, line.decode('utf-8').split())))
+        file.close()
+        return _list
+
+
 @app.route('/')
 def main():
     """
@@ -92,6 +102,7 @@ def main():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.MAIN)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('main.html', meta_data=meta_data)
@@ -108,6 +119,7 @@ def load_get():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('load.html', meta_data=meta_data)
@@ -124,15 +136,11 @@ def load_post():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.LOAD)
+    meta_data.set_active_app(AppType.NSKP)
 
     file = request.files['file']
-    if file and allowed_file(file.filename):
-        _list = []
-        for line in file.stream.readlines():
-            _list.append(list(map(float, line.decode('utf-8').split())))
-        file.close()
-        meta_data.load_data = _list
-        del _list
+
+    meta_data.load_data = read_file(file)
 
     _session.meta_data = meta_data
     return render_template('load.html', meta_data=meta_data)
@@ -149,6 +157,7 @@ def data_get():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.DATA)
+    meta_data.set_active_app(AppType.NSKP)
 
     _session.meta_data = meta_data
     return render_template('data.html', meta_data=meta_data)
@@ -165,11 +174,56 @@ def answer():
 
     meta_data = _session.meta_data
     meta_data.set_active_menu(MenuTypes.ANSWER)
+    meta_data.set_active_app(AppType.NSKP)
 
     if meta_data.mode is Mode.IDEAL_DOT:
         return _ideal_dot_task(meta_data, _session)
     else:
         return _lp_task(meta_data, _session)
+
+
+@app.route('/criteria', methods=["GET"])
+def criteria_get():
+    """
+    Формирует страницу для вычисления критериев.
+    """
+
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_active_menu(MenuTypes.CRITERIA)
+    meta_data.set_active_app(AppType.CRITERIA)
+
+    _session.meta_data = meta_data
+
+    if 'criteria' in meta_data.__dict__:
+        return render_template('criteria.html', meta_data=meta_data, data_criteria=meta_data.criteria.results.to_print())
+
+    return render_template('criteria.html', meta_data=meta_data)
+
+
+@app.route('/criteria', methods=['POST'])
+def criteria_post():
+    """
+    Обрабатывает загрузку файла с исходными данными для расчета критериев.
+    """
+
+    _session = get_session()
+    save_session(_session)
+
+    meta_data = _session.meta_data
+    meta_data.set_active_menu(MenuTypes.CRITERIA)
+    meta_data.set_active_app(AppType.CRITERIA)
+
+    file = request.files['file']
+
+    meta_data.criteria_data = read_file(file)
+
+    meta_data.criteria = Criteria(meta_data.criteria_data)
+
+    _session.meta_data = meta_data
+    return redirect(url_for('criteria_get'))
 
 
 def _lp_task(meta_data, _session):
@@ -219,6 +273,21 @@ def form_load_result():
         file_stream,
         as_attachment=True,
         download_name=f'result_'
+                      f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
+                      f'.docx')
+
+
+@app.route('/form/load_criteria_result', methods=["POST"])
+def form_load_criteria_result():
+    _session = get_session()
+    save_session(_session)
+
+    file_stream = render_criteria(_session.meta_data.criteria.results.to_print())
+
+    return send_file(
+        file_stream,
+        as_attachment=True,
+        download_name=f'criteria_'
                       f'{datetime.datetime.now(pytz.timezone("Asia/Irkutsk")).strftime("%Y-%m-%d_%H-%M-%S")}'
                       f'.docx')
 

@@ -76,3 +76,25 @@ def render_table(mode: Mode, data: list, pods: List[Pod]):
     file_stream.seek(0)
 
     return file_stream
+
+
+def render_criteria(data: list):
+    input_file_name = "result_criteria.docx"
+    path = os.path.join(BASE_DIR, "", input_file_name)
+
+    template = DocxTemplate(path)
+
+    headers = ['Вариант модели', 'Е', 'K', 'Ǩ', 'L', 'Ñ', 'М', 'О', 'Z', 'H']
+
+    context = {
+        'headers': headers,
+        'data': data
+    }
+
+    template.render(context)
+
+    file_stream = io.BytesIO()
+    template.save(file_stream)
+    file_stream.seek(0)
+
+    return file_stream
